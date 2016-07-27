@@ -1,0 +1,38 @@
+{
+  "name": "micro-signals",
+  "version": "0.0.0",
+  "description": "A tiny typed messaging system inspired by js-signals that uses ES2015 sets",
+  "main": "lib/micro-signals.js",
+  "typings": "lib/micro-signals.d.ts",
+  "devDependencies": {
+    "rimraf": "^2.5.4",
+    "tape": "^4.6.0",
+    "ts-node": "^1.2.1",
+    "tslint": "^3.13.0",
+    "typescript": "^1.8.10",
+    "typings": "^1.3.2"
+  },
+  "scripts": {
+    "test": "tslint \"src/**/*.ts\" && tape -r ts-node/register \"test/**/*.ts\"",
+    "install": "typings install",
+    "build": "rimraf lib && tsc -p tsconfig.build.json",
+    "preversion": "npm install && npm test && npm run build",
+    "postversion": "git push --follow-tags && npm publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lelandmiller/micro-signals.git"
+  },
+  "keywords": [
+    "signals",
+    "eventer",
+    "messaging",
+    "pubsub"
+  ],
+  "author": "Leland Miller",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lelandmiller/micro-signals/issues"
+  },
+  "homepage": "https://github.com/lelandmiller/micro-signals#readme"
+}
