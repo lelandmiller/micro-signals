@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "module": "umd",
+        "module": "commonjs",
         "declaration": true,
         "target": "es5",
         "outDir": "lib",
