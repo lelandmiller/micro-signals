@@ -3,6 +3,7 @@
         "module": "commonjs",
         "declaration": true,
         "target": "es5",
+        "lib": ["es5", "es2015.collection"],
         "outDir": "lib",
         "noImplicitAny": true,
         "sourceMap": false
