@@ -27,9 +27,25 @@ test('listeners should received dispatched payloads', t => {
     t.end();
 });
 
+test('listener should be called only once when using addOnce', t => {
+    const signal = new Signal<void>();
+    let callCount = 0;
+
+    signal.addOnce(() => callCount++);
+
+    for (let i = 0; i < 3; i++) {
+        signal.dispatch(undefined);
+    }
+
+    t.equal(callCount, 1);
+
+    t.end();
+});
+
 test('calling detach on a binding should prevent that listener from receiving dispatched', t => {
     const receivedPayloadsListener1: string[] = [];
     const receivedPayloadsListener2: string[] = [];
+    const receivedPayloadsListener3: string[] = [];
 
     const signal = new Signal<string>();
 
@@ -41,6 +57,11 @@ test('calling detach on a binding should prevent that listener from receiving di
         receivedPayloadsListener2.push(payload);
     });
 
+    const addOnceBinding = signal.addOnce(payload => {
+        receivedPayloadsListener3.push(payload);
+    });
+
+    addOnceBinding.detach();
     signal.dispatch('a');
     binding1.detach();
     signal.dispatch('b');
@@ -49,6 +70,7 @@ test('calling detach on a binding should prevent that listener from receiving di
 
     t.deepEqual(receivedPayloadsListener1, ['a']);
     t.deepEqual(receivedPayloadsListener2, ['a', 'b']);
+    t.deepEqual(receivedPayloadsListener3, []);
 
     t.end();
 });
