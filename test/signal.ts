@@ -1,5 +1,5 @@
 import test = require('tape');
-import {Signal} from '../src/signal';
+import {Signal} from '../src/micro-signals';
 
 test('listeners should received dispatched payloads', t => {
     const signal = new Signal<string>();

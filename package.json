@@ -2,7 +2,7 @@
   "name": "micro-signals",
   "version": "0.2.0-0",
   "description": "A tiny typed messaging system inspired by js-signals that uses ES2015 sets",
-  "main": "lib/index.js",
+  "main": "lib/micro-signals.js",
   "devDependencies": {
     "@types/tape": "^4.2.28",
     "rimraf": "^2.5.4",

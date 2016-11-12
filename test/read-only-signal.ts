@@ -1,7 +1,6 @@
 import test = require('tape');
 
-import {ReadOnlySignal} from '../src/read-only-signal';
-import {Signal} from '../src/signal';
+import {ReadOnlySignal, Signal} from '../src/micro-signals';
 
 test('ReadOnlySignal', t => {
     const signal = new Signal<string>();
