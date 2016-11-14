@@ -1,6 +1,6 @@
 import test = require('tape');
 import {FilteredSignal} from '../src/filtered-signal';
-import {Signal} from '../src/micro-signals';
+import {Signal} from '../src/signal';
 
 test('listeners should received dispatched payloads when filter returns true', t => {
     const signal = new Signal<string>();

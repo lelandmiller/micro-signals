@@ -1,5 +1,5 @@
 import test = require('tape');
-import {Signal} from '../src/micro-signals';
+import {Signal} from '../src/signal';
 
 test('listeners should received dispatched payloads', t => {
     const signal = new Signal<string>();
@@ -9,17 +9,9 @@ test('listeners should received dispatched payloads', t => {
     const receivedPayloadsListener1: string[] = [];
     const receivedPayloadsListener2: string[] = [];
 
-    signal.add(payload => {
-        receivedPayloadsListener1.push(payload);
-    });
-
-    signal.add(payload => {
-        receivedPayloadsListener2.push(payload);
-    });
-
-    sentPayloads.forEach(payload => {
-        signal.dispatch(payload);
-    });
+    signal.add((payload: string) => receivedPayloadsListener1.push(payload));
+    signal.add((payload: string) => receivedPayloadsListener2.push(payload));
+    sentPayloads.forEach(payload => signal.dispatch(payload));
 
     t.deepEqual(receivedPayloadsListener1, sentPayloads);
     t.deepEqual(receivedPayloadsListener2, sentPayloads);
@@ -49,17 +41,9 @@ test('calling detach on a binding should prevent that listener from receiving di
 
     const signal = new Signal<string>();
 
-    const binding1 = signal.add(payload => {
-        receivedPayloadsListener1.push(payload);
-    });
-
-    const binding2 = signal.add(payload => {
-        receivedPayloadsListener2.push(payload);
-    });
-
-    const addOnceBinding = signal.addOnce(payload => {
-        receivedPayloadsListener3.push(payload);
-    });
+    const binding1 = signal.add((payload: string) => receivedPayloadsListener1.push(payload));
+    const binding2 = signal.add((payload: string) => receivedPayloadsListener2.push(payload));
+    const addOnceBinding = signal.addOnce((payload: string) => receivedPayloadsListener3.push(payload));
 
     addOnceBinding.detach();
     signal.dispatch('a');
