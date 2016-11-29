@@ -1,18 +1,18 @@
-export interface SignalBinding {
-    detach(): void;
-}
+import {Listener} from './interfaces/listener';
+import {SignalBinding} from './interfaces/signal-binding';
+import {SignalLike} from './interfaces/signal-like';
 
-export class Signal<T> {
+export class Signal<T> implements SignalLike<T> {
     private _listeners = new Set<(payload: T) => void>();
 
-    add(listener: (payload: T) => void): SignalBinding {
+    add(listener: Listener<T>): SignalBinding {
         this._listeners.add(listener);
         return {
             detach: () => this._listeners.delete(listener),
         };
     }
 
-    addOnce(listener: (payload: T) => void): SignalBinding {
+    addOnce(listener: Listener<T>): SignalBinding {
         const binding = this.add((payload: T) => {
             binding.detach();
             listener(payload);
