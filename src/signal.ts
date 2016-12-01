@@ -1,6 +1,6 @@
 import {Listener} from './interfaces/listener';
 import {SignalBinding} from './interfaces/signal-binding';
-import {SignalLike} from './interfaces/signal-like';
+import {ReadableSignalLike, SignalLike} from './interfaces/signal-like';
 
 export class Signal<T> implements SignalLike<T> {
     private _listeners = new Set<(payload: T) => void>();
@@ -25,7 +25,7 @@ export class Signal<T> implements SignalLike<T> {
     }
 }
 
-export class ReadOnlySignal<T> {
+export class ReadOnlySignal<T> implements ReadableSignalLike<T> {
     public add: (listener: (payload: T) => void) => SignalBinding;
     public addOnce: (listener: (payload: T) => void) => SignalBinding;
 
