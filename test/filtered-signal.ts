@@ -1,19 +1,21 @@
 import test = require('tape');
-import {Signal} from '../src/micro-signals';
+import {FilteredSignal} from '../src/filtered-signal';
+import {Signal} from '../src/signal';
 
-test('listeners should received dispatched payloads', t => {
+test('listeners should received dispatched payloads when filter returns true', t => {
     const signal = new Signal<string>();
+    const filteredSignal = new FilteredSignal<string>(signal, payload => payload === 'a');
 
     const sentPayloads = ['a', 'b', 'c'];
 
     const receivedPayloadsListener1: string[] = [];
     const receivedPayloadsListener2: string[] = [];
 
-    signal.add(payload => {
+    filteredSignal.add(payload => {
         receivedPayloadsListener1.push(payload);
     });
 
-    signal.add(payload => {
+    filteredSignal.add(payload => {
         receivedPayloadsListener2.push(payload);
     });
 
@@ -21,20 +23,21 @@ test('listeners should received dispatched payloads', t => {
         signal.dispatch(payload);
     });
 
-    t.deepEqual(receivedPayloadsListener1, sentPayloads);
-    t.deepEqual(receivedPayloadsListener2, sentPayloads);
+    t.deepEqual(receivedPayloadsListener1, ['a']);
+    t.deepEqual(receivedPayloadsListener2, ['a']);
 
     t.end();
 });
 
-test('listener should be called only once when using addOnce', t => {
-    const signal = new Signal<void>();
+test('listener should be called only once when using addOnce and filter returns true', t => {
+    const signal = new Signal<string>();
+    const filteredSignal = new FilteredSignal<string>(signal, payload => payload === 'a');
     let callCount = 0;
 
-    signal.addOnce(() => callCount++);
+    filteredSignal.addOnce(() => callCount++);
 
     for (let i = 0; i < 3; i++) {
-        signal.dispatch(undefined);
+        signal.dispatch('a');
     }
 
     t.equal(callCount, 1);
@@ -48,28 +51,29 @@ test('calling detach on a binding should prevent that listener from receiving di
     const receivedPayloadsListener3: string[] = [];
 
     const signal = new Signal<string>();
+    const filteredSignal = new FilteredSignal<string>(signal, payload => payload === 'a');
 
-    const binding1 = signal.add(payload => {
+    const binding1 = filteredSignal.add(payload => {
         receivedPayloadsListener1.push(payload);
     });
 
-    const binding2 = signal.add(payload => {
+    const binding2 = filteredSignal.add(payload => {
         receivedPayloadsListener2.push(payload);
     });
 
-    const addOnceBinding = signal.addOnce(payload => {
+    const addOnceBinding = filteredSignal.addOnce(payload => {
         receivedPayloadsListener3.push(payload);
     });
 
     addOnceBinding.detach();
     signal.dispatch('a');
     binding1.detach();
-    signal.dispatch('b');
+    signal.dispatch('a');
     binding2.detach();
-    signal.dispatch('c');
+    signal.dispatch('a');
 
     t.deepEqual(receivedPayloadsListener1, ['a']);
-    t.deepEqual(receivedPayloadsListener2, ['a', 'b']);
+    t.deepEqual(receivedPayloadsListener2, ['a', 'a']);
     t.deepEqual(receivedPayloadsListener3, []);
 
     t.end();
