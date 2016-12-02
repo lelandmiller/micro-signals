@@ -1,8 +1,6 @@
-import {Listener} from './interfaces/listener';
-import {SignalBinding} from './interfaces/signal-binding';
-import {ReadableSignalLike, SignalLike} from './interfaces/signal-like';
+import {Listener, ReadableSignal, SignalBinding, WritableSignal} from './interfaces';
 
-export class Signal<T> implements SignalLike<T> {
+export class Signal<T> implements ReadableSignal<T>, WritableSignal<T> {
     private _listeners = new Set<(payload: T) => void>();
 
     add(listener: Listener<T>): SignalBinding {
@@ -25,11 +23,11 @@ export class Signal<T> implements SignalLike<T> {
     }
 }
 
-export class ReadOnlySignal<T> implements ReadableSignalLike<T> {
-    public add: (listener: (payload: T) => void) => SignalBinding;
-    public addOnce: (listener: (payload: T) => void) => SignalBinding;
+export class ReadOnlySignal<T> implements ReadableSignal<T> {
+    public add: (listener: Listener<T>) => SignalBinding;
+    public addOnce: (listener: Listener<T>) => SignalBinding;
 
-    constructor(signal: Signal<T>) {
+    constructor(signal: ReadableSignal<T>) {
         this.add = signal.add.bind(signal);
         this.addOnce = signal.addOnce.bind(signal);
     }
