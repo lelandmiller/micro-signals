@@ -1,2 +1,4 @@
-export {FilteredSignal} from './filtered-signal';
-export {Signal} from './signal';
+export * from './filtered-signal';
+export * from './interfaces';
+export * from './promisify-signal';
+export * from './signal';
