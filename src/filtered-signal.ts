@@ -6,13 +6,12 @@ export interface FilterFunction<T> {
 }
 
 export class FilteredSignal<T> implements ReadableSignal<T> {
-    private _forwardedSignal: ReadableSignal<T>;
+    private _forwardedSignal = new Signal<T>();
 
     constructor(
         signal: ReadableSignal<T>,
         filter: FilterFunction<T> = () => true,
     ) {
-        this._forwardedSignal = new Signal<T>();
         signal.add((payload: T) => {
             if (filter(payload)) {
                 this._forwardedSignal.dispatch(payload);

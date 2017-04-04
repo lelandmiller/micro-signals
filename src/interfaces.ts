@@ -13,5 +13,4 @@ export interface WritableSignal<T> {
 export interface ReadableSignal<T> {
     add: (listener: Listener<T>) => SignalBinding;
     addOnce: (listener: Listener<T>) => SignalBinding;
-    dispatch?: (payload: T) => void;
 }
