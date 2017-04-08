@@ -21,7 +21,7 @@ import * as assert from 'assert';
 
 const signal = new Signal<string>();
 
-const received: number[] = [];
+const received: string[] = [];
 
 const binding = signal.add(payload => {
     received.push(payload);
@@ -49,13 +49,13 @@ import * as assert from 'assert';
 const signal = new Signal<string>();
 const readOnlySignal = new ReadOnlySignal(signal);
 
-const received = [];
+const received: string[] = [];
 
 readOnlySignal.add(payload => {
     received.push(payload);
 });
 
-assert.equal(readOnlySignal.dispatch, undefined);
+assert.equal((readOnlySignal as any).dispatch, undefined);
 
 signal.dispatch('a');
 

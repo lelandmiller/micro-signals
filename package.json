@@ -5,17 +5,18 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "devDependencies": {
+    "@types/rimraf": "0.0.28",
     "@types/tape": "^4.2.28",
     "erasmus": "^0.1.0",
     "faucet": "0.0.1",
-    "rimraf": "^2.5.4",
+    "rimraf": "^2.6.1",
     "tape": "^4.6.0",
     "ts-node": "^1.2.1",
     "tslint": "^3.13.0",
     "typescript": "^2.2.2"
   },
   "scripts": {
-    "test": "tslint \"src/**/*.ts\" && tape -r ts-node/register \"test/**/*.ts\" | faucet",
+    "test": "tslint \"src/**/*.ts\" && tape -r ts-node/register \"test/*.ts\" | faucet",
     "build": "rimraf lib && tsc -p tsconfig.build.json",
     "preversion": "npm install && npm test && npm run build",
     "postversion": "git push --follow-tags && npm publish"
