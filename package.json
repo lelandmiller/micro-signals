@@ -27,11 +27,14 @@
   },
   "keywords": [
     "signals",
+    "signal",
+    "TypeScript",
+    "ts",
     "eventer",
     "messaging",
     "pubsub"
   ],
-  "author": "Leland Miller",
+  "author": "Leland Miller <lelandmiller@gmail.com>",
   "license": "MIT",
   "contributors": [
     "Justin Maher <justin.m.maher@gmail.com>"
