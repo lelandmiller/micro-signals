@@ -63,3 +63,76 @@ signal.dispatch('a');
 
 assert.deepEqual(received, ['a']);
 ```
+
+### FilteredSignal
+
+FilteredSignals are capable of filtering values coming through a Signal, similar to filtering an
+array in JavaScript.
+
+```ts
+import {Signal, FilteredSignal} from 'micro-signals';
+import * as assert from 'assert';
+
+const signal = new Signal<number>();
+const filteredSignal = new FilteredSignal(signal, x => x >= 0);
+
+const received: number[] = [];
+
+filteredSignal.add(payload => {
+    received.push(payload);
+});
+
+[-4, 0, 6, -2, 8, 0].forEach(x => signal.dispatch(x));
+
+assert.deepEqual(received, [0, 6, 8, 0]);
+```
+
+### promisifySignal
+
+Turn signals into promises. The first argument is a resolution signal. When the resolution signal is
+dispatched the promise will be resolved with the dispatched value. The second argument is an
+optional rejection signal. When the rejection signal is dispatched the promise will be rejected with
+the dispatched value.
+
+```ts
+import {Signal, promisifySignal} from 'micro-signals';
+
+const successSignal = new Signal<void>();
+const failureSignal = new Signal<void>();
+
+const promise = promisifySignal(successSignal, failureSignal);
+
+promise.then(() => console.log('success')).catch(() => console.error('failure'));
+```
+
+### Interfaces
+
+Several interfaces are exported as well for convenience:
+
+-   Listener is an interface that defines a function that can be passed to Signal methods taking a
+    listener (such as add or addOnce).
+-   SignalBinding is what is returned from adding a listener, it is the object with the detach
+    method.
+-   ReadableSignal is an interface for a Signal without dispatch.
+-   WritableSignal only defines the dispatch method.
+
+```ts
+import {Signal, Listener, ReadableSignal, SignalBinding, WritableSignal} from 'micro-signals';
+
+const listener: Listener<string> = payload => console.log(payload);
+
+// SignalBindings are returned when attaching a listener
+let binding: SignalBinding;
+
+const signal = new Signal<string>();
+
+// A ReadableSignal cannot be dispatched
+const readable: ReadableSignal<string> = signal;
+
+binding = readable.add(listener);
+
+// A WritableSignal can only be dispatched
+const writable: WritableSignal<string> = signal;
+
+writable.dispatch('hello!');
+```

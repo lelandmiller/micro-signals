@@ -16,6 +16,7 @@ import test = require('tape');
 import { extractCode } from 'erasmus';
 import * as fs from 'fs';
 import rimraf = require('rimraf');
+import * as signals from '../src/index';
 
 const outPath = `${__dirname}/generated-readme-examples`;
 
@@ -35,7 +36,7 @@ function renameDependencies(originalSource: string, dependencies: {[key: string]
  * Extracts code examples from the README to outPath.
  * @returns An array containing the paths to all extracted code blocks.
  */
-function setup(): string[] {
+function extractReadmeExamples(): string[] {
     const filenames: string[] = [];
 
     rimraf.sync(outPath);
@@ -54,15 +55,32 @@ function setup(): string[] {
     return filenames;
 }
 
-function teardown() {
+function cleanupReadmeExamples() {
     rimraf.sync(outPath);
 }
 
 test(`code blocks from the README should compile and run`, t => {
-    const exampleFilePaths = setup();
+    const exampleFilePaths = extractReadmeExamples();
     exampleFilePaths.forEach((path, index) => {
         t.doesNotThrow(() => require(path), `code block ${index} (zero-based) failed`);
     });
-    teardown();
+    cleanupReadmeExamples();
+    t.end();
+});
+
+test(`ensure all exports are at least mentioned in an example (does not capture interfaces)`, t => {
+    const exampleImports = extractCode(fs.readFileSync(`${__dirname}/../README.md`, 'utf8'))
+        .map(block => block.match(/import\s+{(.*)}\s+from\s+'micro-signals'/))
+        .map(matches => matches && matches.length > 0 ? matches[1] : '')
+        .join();
+
+    const indexExports = Object.keys(signals);
+    const unusedExports = indexExports.filter(ex => exampleImports.indexOf(ex) === -1);
+
+    t.equals(
+        unusedExports.length,
+        0,
+        `${unusedExports.join(', ')} were not used in example code blocks`
+    );
     t.end();
 });
