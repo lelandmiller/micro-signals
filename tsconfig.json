@@ -8,7 +8,9 @@
         "moduleResolution": "node",
         "noImplicitAny": true,
         "sourceMap": false,
-        "noUnusedLocals": true
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "strictNullChecks": true
     },
     "exclude": [
         "node_modules"
