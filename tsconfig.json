@@ -12,8 +12,9 @@
         "noUnusedParameters": true,
         "strictNullChecks": true
     },
-    "exclude": [
-        "node_modules"
+    "include": [
+        "src",
+        "test"
     ],
     "compileOnSave": false,
     "buildOnSave": false

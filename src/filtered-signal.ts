@@ -1,33 +1,28 @@
 import {Listener, ReadableSignal, SignalBinding} from './interfaces';
-import {Signal} from './signal';
 
 export interface FilterFunction<T> {
     (payload: T): boolean;
 }
 
 export class FilteredSignal<T> implements ReadableSignal<T> {
-    private _forwardedSignal = new Signal<T>();
-
     constructor(
-        signal: ReadableSignal<T>,
-        filter: FilterFunction<T> = () => true,
-    ) {
-        signal.add((payload: T) => {
-            if (filter(payload)) {
-                this._forwardedSignal.dispatch(payload);
-            }
-        });
-    }
+        private _baseSignal: ReadableSignal<T>,
+        private _filter: FilterFunction<T> = () => true,
+    ) {}
 
     add(listener: Listener<T>): SignalBinding {
-        return this._forwardedSignal.add(listener);
+        return this._baseSignal.add(filteredListener(listener, this._filter));
     }
 
     addOnce(listener: Listener<T>): SignalBinding {
-        return this._forwardedSignal.addOnce(listener);
+        return this._baseSignal.addOnce(filteredListener(listener, this._filter));
     }
+}
 
-    dispatch(payload: T) {
-        this._forwardedSignal.dispatch(payload);
-    }
+function filteredListener<T>(listener: Listener<T>, filter: FilterFunction<T>): Listener<T> {
+    return (x: T) => {
+        if (filter(x)) {
+            listener(x);
+        }
+    };
 }

@@ -1,7 +1,7 @@
 import {Listener, ReadableSignal, SignalBinding, WritableSignal} from './interfaces';
 
 export class Signal<T> implements ReadableSignal<T>, WritableSignal<T> {
-    private _listeners = new Set<(payload: T) => void>();
+    protected _listeners = new Set<(payload: T) => void>();
 
     add(listener: Listener<T>): SignalBinding {
         this._listeners.add(listener);
