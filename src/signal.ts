@@ -22,13 +22,3 @@ export class Signal<T> implements ReadableSignal<T>, WritableSignal<T> {
         this._listeners.forEach(callback => callback.call(undefined, payload));
     }
 }
-
-export class ReadOnlySignal<T> implements ReadableSignal<T> {
-    public add: (listener: Listener<T>) => SignalBinding;
-    public addOnce: (listener: Listener<T>) => SignalBinding;
-
-    constructor(signal: ReadableSignal<T>) {
-        this.add = signal.add.bind(signal);
-        this.addOnce = signal.addOnce.bind(signal);
-    }
-}
