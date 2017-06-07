@@ -87,6 +87,29 @@ filteredSignal.add(payload => {
 assert.deepEqual(received, [0, 6, 8, 0]);
 ```
 
+### MappedSignal
+
+MappedSignals are able to transform payloads coming through a Signal, similar to mapping an array
+in JavaScript.
+
+```ts
+import {Signal, MappedSignal} from 'micro-signals';
+import * as assert from 'assert';
+
+const signal = new Signal<string>();
+const mappedSignal = new MappedSignal(signal, x => `${x}!`);
+
+const received: string[] = [];
+
+mappedSignal.add(payload => {
+    received.push(payload);
+});
+
+['cat', 'dog', 'frog', 'sloth'].forEach(x => signal.dispatch(x));
+
+assert.deepEqual(received, ['cat!', 'dog!', 'frog!', 'sloth!']);
+```
+
 ### promisifySignal
 
 Turn signals into promises. The first argument is a resolution signal. When the resolution signal is
