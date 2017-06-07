@@ -44,7 +44,7 @@ function extractReadmeExamples(): string[] {
 
     extractCode(fs.readFileSync(`${__dirname}/../README.md`, 'utf8')).forEach((example, index) => {
         const converted = renameDependencies(example, {
-            'micro-signals': `${__dirname}/../lib/index`,
+            'micro-signals': `${__dirname}/../src/index`,
         });
         const filename = `README-${index}.ts`;
         const path = `${outPath}/${filename}`;
