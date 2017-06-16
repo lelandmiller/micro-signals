@@ -110,6 +110,33 @@ mappedSignal.add(payload => {
 assert.deepEqual(received, ['cat!', 'dog!', 'frog!', 'sloth!']);
 ```
 
+### MergedSignal
+
+MergedSignals take an arbitrary number of signals as constructor arguments and forward payloads from
+all of the provided signals. They allow multiplexing of Signals.
+
+```ts
+import {Signal, MergedSignal} from 'micro-signals';
+import * as assert from 'assert';
+
+const signal1 = new Signal<string>();
+const signal2 = new Signal<string>();
+
+const mergedSignal = new MergedSignal(signal1, signal2);
+
+const received: string[] = [];
+
+mergedSignal.add(payload => {
+    received.push(payload);
+});
+
+signal1.dispatch('Hello');
+signal2.dispatch('world');
+signal1.dispatch('!');
+
+assert.deepEqual(received, ['Hello', 'world', '!']);
+```
+
 ### promisifySignal
 
 Turn signals into promises. The first argument is a resolution signal. When the resolution signal is
