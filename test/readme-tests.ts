@@ -13,10 +13,10 @@
  * installed dependencies.
  */
 import test = require('tape');
+import * as signals from '../src/index';
 import { extractCode } from 'erasmus';
 import * as fs from 'fs';
 import rimraf = require('rimraf');
-import * as signals from '../src/index';
 
 const outPath = `${__dirname}/generated-readme-examples`;
 
