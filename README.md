@@ -4,6 +4,8 @@ A tiny typed messaging system inspired by js-signals that uses ES2015 sets
 
 [![Build Status](https://travis-ci.org/lelandmiller/micro-signals.svg?branch=master)](https://travis-ci.org/lelandmiller/micro-signals)
 
+[![codecov](https://codecov.io/gh/lelandmiller/micro-signals/branch/master/graph/badge.svg)](https://codecov.io/gh/lelandmiller/micro-signals)
+
 ## Usage
 
 Install using `npm install micro-signals`.
