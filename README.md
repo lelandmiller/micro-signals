@@ -16,8 +16,13 @@ micro-signals is a collection of very simple signal types that can be combined i
 
 ### Signal
 
-Signals return a binding with a detach method, similar to js-signals, but with a simplified
-interface. The example below shows all of the functionality for the basic signal.
+Signals return a binding with a detach method, similar to js-signals, but with methods that can
+create new transformed signals (such as map and filter). These methods are similar to the matching
+methods on a JavaScript array. Each provides a new Signal (it does not modify the current signal)
+and is chainable. All of the Signals described below (MappedSignal, FilteredSignal, etc.) have a
+matching method on the base Signal.
+
+#### Basic Usage of a Signal
 
 ```ts
 import {Signal} from 'micro-signals';
@@ -38,6 +43,33 @@ binding.detach();
 signal.dispatch('b');
 
 assert.deepEqual(received, ['a']);
+```
+
+#### Using the Extended Signal Interface
+
+```ts
+import {Signal} from 'micro-signals';
+import * as assert from 'assert';
+
+const signal = new Signal<string>();
+
+const received: string[] = [];
+
+signal
+    .filter(payload => payload === 'world')
+    .map(payload => `hello ${payload}!`)
+    .add(payload => received.push(payload));
+
+signal
+    .filter(payload => payload === 'moon')
+    .map(payload => `goodnight ${payload}!`)
+    .add(payload => received.push(payload));
+
+signal.dispatch('world');
+signal.dispatch('sun');
+signal.dispatch('moon');
+
+assert.deepEqual(received, ['hello world!', 'goodnight moon!']);
 ```
 
 ### ReadOnlySignal
