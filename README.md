@@ -1,4 +1,4 @@
-# micro-signals
+![micro-signals](https://rawgit.com/lelandmiller/micro-signals/master/micro-signals.svg)
 
 A tiny typed messaging system inspired by js-signals that uses ES2015 sets
 
