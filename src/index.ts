@@ -1,7 +1,5 @@
-export * from './filtered-signal';
 export * from './interfaces';
-export * from './promisify-signal';
-export * from './signal';
-export * from './mapped-signal';
-export * from './read-only-signal';
-export * from './merged-signal';
+
+export * from './signal-classes';
+export {promisifySignal} from './promisify-signal';
+export {Signal} from './signal';

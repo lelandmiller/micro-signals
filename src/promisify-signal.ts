@@ -1,8 +1,8 @@
-import {ReadableSignal, SignalBinding} from './interfaces';
+import {BaseSignal, SignalBinding} from './interfaces';
 
 export function promisifySignal<T>(
-    resolveSignal: ReadableSignal<T>,
-    rejectSignal?: ReadableSignal<T>,
+    resolveSignal: BaseSignal<T>,
+    rejectSignal?: BaseSignal<any>,
 ): Promise<T> {
     return new Promise<T>((resolve, reject) => {
         const bindings: SignalBinding[] = [];
