@@ -37,7 +37,7 @@ export function mergedSuite(prefix: string, createMergedSignal: ReadableSignalCr
     test('MergedSignal should not leak', t => {
         const signal1 = new LeakDetectionSignal<void>();
         const signal2 = new LeakDetectionSignal<void>();
-        let mergedSignal = createMergedSignal(signal1, signal2);
+        const mergedSignal = createMergedSignal(signal1, signal2);
 
         const binding = mergedSignal.add(() => { /* empty listener */ });
         signal1.dispatch(undefined);

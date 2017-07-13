@@ -6,6 +6,15 @@ A tiny typed messaging system inspired by js-signals that uses ES2015 sets
 [![codecov](https://codecov.io/gh/lelandmiller/micro-signals/branch/master/graph/badge.svg)](https://codecov.io/gh/lelandmiller/micro-signals)
 [![The Aj](https://img.shields.io/badge/The_Aj-verified-brightgreen.svg)](https://www.linkedin.com/in/ajay-kodali-1281553/)
 
+## Plans for 1.0.0
+
+The current plan is to remove the alternate signal classes (MappedSignal, FilteredSignal, etc.) in
+favor of using the extended Signal class with signal transformation methods. Once this is done the
+Signal interface will be considered stable and 1.0.0 will be released. Static methods for merge and
+promisifySignal will be added to the Signal class to address the lack of a MergedSignal class and
+promisifySignal since those both took two signals, and it may seem more semantic in some cases to
+have the static method.
+
 ## Usage
 
 Install using `npm install micro-signals`.
@@ -72,7 +81,7 @@ signal.dispatch('moon');
 assert.deepEqual(received, ['hello world!', 'goodnight moon!']);
 ```
 
-### ReadOnlySignal
+### ReadOnlySignal (deprecated)
 
 ReadOnlySignals provide a wrapper around a signal with no dispatch method. This is primarily used to
 publicly expose a signal while indicating that consumers of the signal should not dispatch the
@@ -98,7 +107,7 @@ signal.dispatch('a');
 assert.deepEqual(received, ['a']);
 ```
 
-### FilteredSignal
+### FilteredSignal (deprecated)
 
 FilteredSignals are capable of filtering values coming through a Signal, similar to filtering an
 array in JavaScript.
@@ -121,7 +130,7 @@ filteredSignal.add(payload => {
 assert.deepEqual(received, [0, 6, 8, 0]);
 ```
 
-### MappedSignal
+### MappedSignal (deprecated)
 
 MappedSignals are able to transform payloads coming through a Signal, similar to mapping an array
 in JavaScript.
@@ -144,7 +153,7 @@ mappedSignal.add(payload => {
 assert.deepEqual(received, ['cat!', 'dog!', 'frog!', 'sloth!']);
 ```
 
-### MergedSignal
+### MergedSignal (deprecated)
 
 MergedSignals take an arbitrary number of signals as constructor arguments and forward payloads from
 all of the provided signals. They allow multiplexing of Signals.
@@ -171,7 +180,7 @@ signal1.dispatch('!');
 assert.deepEqual(received, ['Hello', 'world', '!']);
 ```
 
-### promisifySignal
+### promisifySignal (deprecated)
 
 Turn signals into promises. The first argument is a resolution signal. When the resolution signal is
 dispatched the promise will be resolved with the dispatched value. The second argument is an

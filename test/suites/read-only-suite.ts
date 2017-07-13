@@ -41,7 +41,7 @@ export function readOnlySuite(prefix: string, createReadOnlySignal: ReadOnlySign
 
     test(`${prefix} should not leak`, t => {
         const signal = new LeakDetectionSignal<void>();
-        let readOnlySignal = createReadOnlySignal(signal);
+        const readOnlySignal = createReadOnlySignal(signal);
 
         const binding = readOnlySignal.add(() => { /* empty listener */ });
         signal.dispatch(undefined);

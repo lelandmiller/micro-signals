@@ -1,10 +1,6 @@
-export interface Listener<T> {
-    (payload: T): void;
-}
+export type Listener<T> = (payload: T) => void;
 
-export interface FilterFunction<T> {
-    (payload: T): boolean;
-}
+export type FilterFunction<T> = (payload: T) => boolean;
 
 export interface SignalBinding {
     detach(): void;

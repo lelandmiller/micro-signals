@@ -17,7 +17,7 @@ export function filteredBase<T>(
 
 export function mappedBase<T, U>(
     baseSignal: BaseSignal<T>,
-    transform: (payload: T) => U
+    transform: (payload: T) => U,
 ): BaseSignal<U> {
     return {
         add(listener: Listener<U>) {
@@ -27,7 +27,7 @@ export function mappedBase<T, U>(
 }
 
 export function mergedBase<T>(
-    ...baseSignals: BaseSignal<T>[]
+    ...baseSignals: BaseSignal<T>[],
 ): BaseSignal<T> {
     return {
         add(listener: Listener<T>): SignalBinding {
