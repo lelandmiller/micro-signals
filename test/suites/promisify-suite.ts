@@ -49,7 +49,7 @@ export function promisifySuite(prefix: string, promisifyFunction: PromisifyFunct
         const acceptSignal = new LeakDetectionSignal<void>();
         const rejectSignal = new LeakDetectionSignal<void>();
 
-        let promise = promisifyFunction(acceptSignal, rejectSignal);
+        const promise = promisifyFunction(acceptSignal, rejectSignal);
         promise.then(() => { /* empty callback */ });
 
         acceptSignal.dispatch(undefined);
@@ -63,7 +63,7 @@ export function promisifySuite(prefix: string, promisifyFunction: PromisifyFunct
         const acceptSignal = new LeakDetectionSignal<void>();
         const rejectSignal = new LeakDetectionSignal<void>();
 
-        let promise = promisifyFunction(acceptSignal, rejectSignal);
+        const promise = promisifyFunction(acceptSignal, rejectSignal);
         promise.catch(() => { /* used to suppress unhandled promise error */ });
 
         rejectSignal.dispatch(undefined);

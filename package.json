@@ -9,12 +9,12 @@
     "@types/tape": "^4.2.30",
     "erasmus": "^0.1.0",
     "faucet": "0.0.1",
-    "nyc": "^11.0.2",
+    "nyc": "^11.0.3",
     "rimraf": "^2.6.1",
-    "tape": "^4.6.3",
-    "ts-node": "^3.1.0",
-    "tslint": "^3.13.3",
-    "typescript": "2.2.2"
+    "tape": "^4.7.0",
+    "ts-node": "^3.2.0",
+    "tslint": "^5.5.0",
+    "typescript": "2.4.1"
   },
   "scripts": {
     "lint": "tslint --project ./tsconfig.json",

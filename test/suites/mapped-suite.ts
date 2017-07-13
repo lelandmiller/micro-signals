@@ -3,7 +3,7 @@ import {ReadableSignal, Signal} from '../../src';
 import {LeakDetectionSignal} from '../lib/leak-detection-signal';
 
 export type MappedSignalCreationFunction
-    = <T, U>(baseSignal: ReadableSignal<T>, transform: (payload: T) => U) => ReadableSignal<T>;
+    = <T, U>(baseSignal: ReadableSignal<T>, transform: (payload: T) => U) => ReadableSignal<U>;
 
 export function mappedSuite(prefix: string, createMappedSignal: MappedSignalCreationFunction) {
     test(`${prefix} should dispatch with a transformed payload`, t => {
@@ -29,7 +29,7 @@ export function mappedSuite(prefix: string, createMappedSignal: MappedSignalCrea
 
     test('MappedSignal should not leak', t => {
         const signal = new LeakDetectionSignal<void>();
-        let mappedSignal = createMappedSignal(signal, () => true);
+        const mappedSignal = createMappedSignal(signal, () => true);
 
         const binding = mappedSignal.add(() => { /* empty listener */ });
         signal.dispatch(undefined);

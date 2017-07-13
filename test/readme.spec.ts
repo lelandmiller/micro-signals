@@ -13,9 +13,9 @@
  * installed dependencies.
  */
 import test = require('tape');
-import * as signals from '../src/index';
 import { extractCode } from 'erasmus';
 import * as fs from 'fs';
+import * as signals from '../src/index';
 import rimraf = require('rimraf');
 
 const outPath = `${__dirname}/generated-readme-examples`;
@@ -80,7 +80,7 @@ test(`ensure all exports are at least mentioned in an example (does not capture 
     t.equals(
         unusedExports.length,
         0,
-        `${unusedExports.join(', ')} were not used in example code blocks`
+        `${unusedExports.join(', ')} were not used in example code blocks`,
     );
     t.end();
 });

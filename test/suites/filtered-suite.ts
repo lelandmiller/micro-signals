@@ -85,7 +85,7 @@ export function filteredSuite(prefix: string, createFilteredSignal: FilteredSign
 
     test('FilteredSignal should not leak', t => {
         const signal = new LeakDetectionSignal<void>();
-        let filteredSignal = createFilteredSignal(signal, () => true);
+        const filteredSignal = createFilteredSignal(signal, () => true);
 
         const binding = filteredSignal.add(() => { /* empty listener */ });
         signal.dispatch(undefined);

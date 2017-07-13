@@ -1,11 +1,11 @@
 {
-  "extends": ["tslint:latest"],
+  "extends": ["tslint:recommended"],
   "rules": {
+    "array-type": [true, "array"],
+    "arrow-parens": [true, "ban-single-arg-parens"],
+    "interface-name": [false],
+    "max-classes-per-file": [false],
     "quotemark": [true, "single"],
-    "member-access": false,
-    "interface-name": false,
-    "ordered-imports": [true, "alphabetize", "check-groups"],
-    "switch-default": false,
     "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"]
   }
 }
