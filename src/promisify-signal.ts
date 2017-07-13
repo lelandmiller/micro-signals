@@ -1,5 +1,8 @@
 import {BaseSignal, SignalBinding} from './interfaces';
 
+/**
+ * @deprecated
+ */
 export function promisifySignal<T>(
     resolveSignal: BaseSignal<T>,
     rejectSignal?: BaseSignal<any>,
