@@ -112,9 +112,20 @@ mergedSuite(
     <T>(baseSignal: ReadableSignal<T>, ...signals: ReadableSignal<T>[]) => baseSignal.merge(...signals),
 );
 
+mergedSuite(
+    'Signal.merge',
+    <T>(baseSignal: ReadableSignal<T>, ...signals: ReadableSignal<T>[]) => Signal.merge(baseSignal, ...signals),
+);
+
 promisifySuite(
     'Signal#promisify',
     <T>(resolveSignal: ReadableSignal<T>, rejectSignal?: ReadableSignal<any>) => resolveSignal.promisify(rejectSignal),
+);
+
+promisifySuite(
+    'Signal.promisify',
+    <T>(resolveSignal: ReadableSignal<T>, rejectSignal?: ReadableSignal<any>) =>
+        Signal.promisify(resolveSignal, rejectSignal),
 );
 
 readOnlySuite(
