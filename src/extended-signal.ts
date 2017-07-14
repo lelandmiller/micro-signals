@@ -9,6 +9,15 @@ import {
 import {promisifySignal} from './promisify-signal';
 
 export class ExtendedSignal<T> implements ReadableSignal<T> {
+    public static merge<U>(...signals: ReadableSignal<U>[]): ReadableSignal<U> {
+        return new ExtendedSignal(mergedBase<U>(...signals));
+    }
+    public static promisify<U>(
+        resolveSignal: ReadableSignal<U>,
+        rejectSignal?: ReadableSignal<Error>,
+    ): Promise<U> {
+        return promisifySignal(resolveSignal, rejectSignal);
+    }
     constructor(private _baseSignal: BaseSignal<T>) {}
     public add(listener: Listener<T>): SignalBinding {
         return this._baseSignal.add(listener);
