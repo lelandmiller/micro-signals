@@ -14,7 +14,7 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
     }
     public static promisify<U>(
         resolveSignal: ReadableSignal<U>,
-        rejectSignal?: ReadableSignal<Error>,
+        rejectSignal?: ReadableSignal<any>,
     ): Promise<U> {
         return promisifySignal(resolveSignal, rejectSignal);
     }
@@ -38,7 +38,7 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
     public merge<U>(...signals: ReadableSignal<U>[]): ReadableSignal<T|U> {
         return new ExtendedSignal(mergedBase<T|U>(this._baseSignal, ...signals));
     }
-    public promisify(rejectSignal?: ReadableSignal<Error>): Promise<T> {
+    public promisify(rejectSignal?: ReadableSignal<any>): Promise<T> {
         return promisifySignal(this._baseSignal, rejectSignal);
     }
     public readOnly(): ReadableSignal<T> {
