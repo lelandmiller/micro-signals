@@ -107,7 +107,7 @@ signal1.dispatch('!');
 assert.deepEqual(received, ['Hello', 'world', '!']);
 ```
 
-#### Signal.promisifySignal
+#### Signal.promisify
 
 Turn signals into promises. The first argument is a resolution signal. When the resolution signal is
 dispatched the promise will be resolved with the dispatched value. The second argument is an
@@ -227,7 +227,7 @@ signal1.dispatch('!');
 assert.deepEqual(received, ['Hello', 'world', '!']);
 ```
 
-### Signal.promisifySignal
+### Signal.promisify
 
 Turn signals into promises. The base signal is a resolution signal. When the resolution signal is
 dispatched the promise will be resolved with the dispatched value. The second argument is an
