@@ -15,7 +15,6 @@
 import test = require('tape');
 import { extractCode } from 'erasmus';
 import * as fs from 'fs';
-import * as signals from '../src/index';
 import rimraf = require('rimraf');
 
 const outPath = `${__dirname}/generated-readme-examples`;
@@ -65,22 +64,5 @@ test(`code blocks from the README should compile and run`, t => {
         t.doesNotThrow(() => require(path), `code block ${index} (zero-based) failed`);
     });
     cleanupReadmeExamples();
-    t.end();
-});
-
-test(`ensure all exports are at least mentioned in an example (does not capture interfaces)`, t => {
-    const exampleImports = extractCode(fs.readFileSync(`${__dirname}/../README.md`, 'utf8'))
-        .map(block => block.match(/import\s+{(.*)}\s+from\s+'micro-signals'/))
-        .map(matches => matches && matches.length > 0 ? matches[1] : '')
-        .join();
-
-    const indexExports = Object.keys(signals);
-    const unusedExports = indexExports.filter(ex => exampleImports.indexOf(ex) === -1);
-
-    t.equals(
-        unusedExports.length,
-        0,
-        `${unusedExports.join(', ')} were not used in example code blocks`,
-    );
     t.end();
 });
