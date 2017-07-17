@@ -1,27 +1,18 @@
-import {BaseSignal, Listener, SignalBinding, WritableSignal} from './interfaces';
+import {Listener, WritableSignal} from './interfaces';
 
 import {ExtendedSignal} from './extended-signal';
 
-// TODO add deprecation notices should we deprecate?
 export class Signal<T> extends ExtendedSignal<T> implements WritableSignal<T> {
-    protected _signalSource: SignalSource<T>;
+    protected _listeners = new Set<Listener<T>>();
     constructor() {
-        const signalSource = new SignalSource<T>();
-        super(signalSource);
-        this._signalSource = signalSource;
-    }
-    public dispatch(payload: T): void {
-        this._signalSource.dispatch(payload);
-    }
-}
-
-export class SignalSource<T> implements BaseSignal<T> {
-    public _listeners = new Set<(payload: T) => void>();
-    public add(listener: Listener<T>): SignalBinding {
-        this._listeners.add(listener);
-        return {
-            detach: () => this._listeners.delete(listener),
-        };
+        super({
+            add: listener => {
+                this._listeners.add(listener);
+                return {
+                    detach: () => this._listeners.delete(listener),
+                };
+            },
+        });
     }
     public dispatch(payload: T): void {
         this._listeners.forEach(callback => callback.call(undefined, payload));

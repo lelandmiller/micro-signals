@@ -10,6 +10,6 @@ import {
 
 export class LeakDetectionSignal<T> extends BaseSignal<T> {
     get listenerCount(): number {
-        return this._signalSource._listeners.size;
+        return this._listeners.size;
     }
 }
