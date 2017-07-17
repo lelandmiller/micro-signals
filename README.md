@@ -6,14 +6,20 @@ A tiny typed messaging system inspired by js-signals that uses ES2015 sets
 [![codecov](https://codecov.io/gh/lelandmiller/micro-signals/branch/master/graph/badge.svg)](https://codecov.io/gh/lelandmiller/micro-signals)
 [![The Aj](https://img.shields.io/badge/The_Aj-verified-brightgreen.svg)](https://www.linkedin.com/in/ajay-kodali-1281553/)
 
-## Plans for 1.0.0
+## About
 
-The current plan is to remove the alternate signal classes (MappedSignal, FilteredSignal, etc.) in
-favor of using the extended Signal class with signal transformation methods. Once this is done the
-Signal interface will be considered stable and 1.0.0 will be released. Static methods for merge and
-promisifySignal will be added to the Signal class to address the lack of a MergedSignal class and
-promisifySignal since those both took two signals, and it may seem more semantic in some cases to
-have the static method.
+micro-signals is an attempt to provide a simple and flexible signal library for TypeScript and
+JavaScript consumption. It borrows ideas from libraries such as
+[RxJS](https://github.com/Reactive-Extensions/RxJS) and
+[js-signals](https://millermedeiros.github.io/js-signals/).
+
+The library has no relation to [mini-signals](https://github.com/Hypercubed/mini-signals) and the
+name micro-signals is not meant to imply that this library is smaller than mini-signals in any way.
+The package was named and published before it was noticed that there already was a mini-signals
+library. Also, it may not seem very "micro" at this point. The original implementation was
+[much smaller](https://github.com/lelandmiller/micro-signals/blob/v0.1.0/src/micro-signals.ts) and
+at the time the name made more sense. However, the hope is that this library can provide a very
+useful signal interface and remain as "micro" as possible.
 
 ## Usage
 
