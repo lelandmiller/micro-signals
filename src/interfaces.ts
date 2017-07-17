@@ -1,7 +1,5 @@
 export type Listener<T> = (payload: T) => void;
 
-export type FilterFunction<T> = (payload: T) => boolean;
-
 export interface SignalBinding {
     detach(): void;
 }
@@ -12,7 +10,7 @@ export interface BaseSignal<T> {
 
 export interface ReadableSignal<T> extends BaseSignal<T> {
     addOnce(listener: Listener<T>): SignalBinding;
-    filter(filter: FilterFunction<T>): ReadableSignal<T>;
+    filter(filter: (payload: T) => boolean): ReadableSignal<T>;
     map<U>(transform: (payload: T) => U): ReadableSignal<U>;
     merge<U>(...signals: ReadableSignal<U>[]): ReadableSignal<T|U>;
     promisify(rejectSignal?: ReadableSignal<any>): Promise<T>;

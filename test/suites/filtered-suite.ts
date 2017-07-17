@@ -1,9 +1,9 @@
 import test = require('tape');
-import {FilterFunction, ReadableSignal, Signal} from '../../src/index';
+import {ReadableSignal, Signal} from '../../src/index';
 import {LeakDetectionSignal} from '../lib/leak-detection-signal';
 
 export type FilteredSignalCreationFunction
-    = <T>(baseSignal: ReadableSignal<T>, filter: FilterFunction<T>) => ReadableSignal<T>;
+    = <T>(baseSignal: ReadableSignal<T>, filter: (payload: T) => boolean) => ReadableSignal<T>;
 
 export function filteredSuite(prefix: string, createFilteredSignal: FilteredSignalCreationFunction) {
     test(`${prefix} listeners should received dispatched payloads when filter returns true`, t => {

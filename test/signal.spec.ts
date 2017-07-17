@@ -1,8 +1,6 @@
 import test = require('tape');
 
 import {
-    FilterFunction,
-    ReadableSignal,
     Signal,
 } from '../src';
 
@@ -99,36 +97,35 @@ test('Signal methods should be chainable', t => {
 
 filteredSuite(
     'Signal#filter',
-    <T>(baseSignal: ReadableSignal<T>, filter: FilterFunction<T>) => baseSignal.filter(filter),
+    (baseSignal, filter) => baseSignal.filter(filter),
 );
 
 mappedSuite(
     'Signal#map',
-    <T, U>(baseSignal: ReadableSignal<T>, transform: (payload: T) => U) => baseSignal.map(transform),
+    (baseSignal, transform) => baseSignal.map(transform),
 );
 
 mergedSuite(
     'Signal#merge',
-    <T>(baseSignal: ReadableSignal<T>, ...signals: ReadableSignal<T>[]) => baseSignal.merge(...signals),
+    (baseSignal, ...signals) => baseSignal.merge(...signals),
 );
 
 mergedSuite(
     'Signal.merge',
-    <T>(baseSignal: ReadableSignal<T>, ...signals: ReadableSignal<T>[]) => Signal.merge(baseSignal, ...signals),
+    (baseSignal, ...signals) => Signal.merge(baseSignal, ...signals),
 );
 
 promisifySuite(
     'Signal#promisify',
-    <T>(resolveSignal: ReadableSignal<T>, rejectSignal?: ReadableSignal<any>) => resolveSignal.promisify(rejectSignal),
+    (resolveSignal, rejectSignal?) => resolveSignal.promisify(rejectSignal),
 );
 
 promisifySuite(
     'Signal.promisify',
-    <T>(resolveSignal: ReadableSignal<T>, rejectSignal?: ReadableSignal<any>) =>
-        Signal.promisify(resolveSignal, rejectSignal),
+    (resolveSignal, rejectSignal?) => Signal.promisify(resolveSignal, rejectSignal),
 );
 
 readOnlySuite(
     'Signal#readOnly',
-    <T>(signal: ReadableSignal<T>) => signal.readOnly(),
+    signal => signal.readOnly(),
 );
