@@ -12,10 +12,10 @@
  * also be nice, but outputting in the project directory ensures we have access to any locally
  * installed dependencies.
  */
-import test = require('tape');
 import { extractCode } from 'erasmus';
 import * as fs from 'fs';
 import rimraf = require('rimraf');
+import test = require('tape');
 
 const outPath = `${__dirname}/generated-readme-examples`;
 

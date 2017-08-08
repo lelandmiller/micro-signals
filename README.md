@@ -251,6 +251,73 @@ const promise = successSignal.promisify(failureSignal);
 promise.then(() => console.log('success')).catch(() => console.error('failure'));
 ```
 
+### ExtendedSignal
+
+An ExtendedSignal class is provided for the creation of a custom signal or wrapping a basic signal
+(containing only an add method) with the remainder of the methods found on a micro-signals Signal
+(such as map, filter, and so on). In many cases this gives us an easy way to ensure an intermediate
+Signal does not block garbage collection, and in some cases may present a simpler way to obtain a
+desired interface. For example, this makes it possible to extend the ExtendedSignal class to get the
+Signal interface without having to expose the add method anywhere.
+
+Compare the following code examples:
+
+```ts
+import {ExtendedSignal} from 'micro-signals';
+import EventEmitter = require('events');
+import * as assert from 'assert';
+
+const emitter = new EventEmitter();
+
+const signal = new ExtendedSignal<number>({
+    add(listener) {
+        const cb = (value: number) => listener(value);
+        emitter.on('event', cb);
+        return {
+            detach() {
+                emitter.removeListener('event', cb);
+            }
+        };
+    },
+});
+
+const received: number[] = [];
+
+signal.add(payload => received.push(payload));
+
+emitter.emit('event', 1);
+emitter.emit('event', 2);
+
+assert.deepEqual(received, [1, 2]);
+```
+
+```ts
+import {Signal} from 'micro-signals';
+import EventEmitter = require('events');
+import * as assert from 'assert';
+
+const emitter = new EventEmitter();
+
+const signal = new Signal<number>();
+
+emitter.on('event', payload => signal.dispatch(payload));
+
+const received: number[] = [];
+
+signal.add(payload => received.push(payload));
+
+emitter.emit('event', 1);
+emitter.emit('event', 2);
+
+assert.deepEqual(received, [1, 2]);
+```
+
+Though the second is more terse, there is always a listener connected underlying emitter object. In
+some cases this may prevent proper garbage collection. In the top example, the Signal only acts as a
+transformation layer on listeners to provide the interface of a Signal without storing any state
+itself. This is how the internal signal transformations work in order to provide unnecessary
+intermediate signals. Feel free to use it or ignore it at your discretion.
+
 ### Interfaces
 
 Several interfaces are exported as well for convenience:
