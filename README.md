@@ -283,12 +283,12 @@ const signal = new ExtendedSignal<number>({
 
 const received: number[] = [];
 
-signal.add(payload => received.push(payload));
+signal.map(x => x + 1).add(payload => received.push(payload));
 
 emitter.emit('event', 1);
 emitter.emit('event', 2);
 
-assert.deepEqual(received, [1, 2]);
+assert.deepEqual(received, [2, 3]);
 ```
 
 ```ts
@@ -304,12 +304,12 @@ emitter.on('event', payload => signal.dispatch(payload));
 
 const received: number[] = [];
 
-signal.add(payload => received.push(payload));
+signal.map(x => x + 1).add(payload => received.push(payload));
 
 emitter.emit('event', 1);
 emitter.emit('event', 2);
 
-assert.deepEqual(received, [1, 2]);
+assert.deepEqual(received, [2, 3]);
 ```
 
 Though the second is more terse, there is always a listener connected underlying emitter object. In
