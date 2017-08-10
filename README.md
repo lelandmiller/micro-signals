@@ -312,11 +312,12 @@ emitter.emit('event', 2);
 assert.deepEqual(received, [2, 3]);
 ```
 
-Though the second is more terse, there is always a listener connected underlying emitter object. In
-some cases this may prevent proper garbage collection. In the top example, the Signal only acts as a
-transformation layer on listeners to provide the interface of a Signal without storing any state
-itself. This is how the internal signal transformations work in order to provide unnecessary
-intermediate signals. Feel free to use it or ignore it at your discretion.
+Though the second is more terse, there is always a listener connected to the underlying emitter
+object. In some cases this may prevent proper garbage collection. In the top example, the Signal
+only acts as a transformation layer, transforming listeners to provide the interface of a Signal
+without storing any state itself. This is how the internal signal transformations work in order to
+remove unnecessary intermediate signals. Feel free to use or ignore the ExtendedSignal at your
+discretion.
 
 ### Interfaces
 
