@@ -15,6 +15,12 @@ export class Signal<T> extends ExtendedSignal<T> implements WritableSignal<T> {
         });
     }
     public dispatch(payload: T): void {
-        this._listeners.forEach(callback => callback.call(undefined, payload));
+        this._listeners.forEach(callback => {
+            try {
+                callback.call(undefined, payload);
+                // tslint:disable-next-line:no-empty
+            } catch (e) {
+            }
+        });
     }
 }

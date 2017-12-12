@@ -28,6 +28,31 @@ test('Signal listeners should received dispatched payloads', t => {
     t.end();
 });
 
+test('All listeners should receive dispatched payloads even with exceptions', t => {
+    const signal = new Signal<string>();
+
+    const sentPayloads = ['a', 'b', 'c'];
+
+    const receivedPayloadsListener1: string[] = [];
+    const receivedPayloadsListener2: string[] = [];
+
+    signal.add(payload => {
+        receivedPayloadsListener1.push(payload);
+        throw new Error('');
+    });
+    signal.add(payload => {
+        receivedPayloadsListener2.push(payload);
+        throw new Error('');
+    });
+
+    sentPayloads.forEach(payload => signal.dispatch(payload));
+
+    t.deepEqual(receivedPayloadsListener1, sentPayloads);
+    t.deepEqual(receivedPayloadsListener2, sentPayloads);
+
+    t.end();
+});
+
 test('Signal listener should be called only once when using addOnce', t => {
     const signal = new Signal<void>();
     let callCount = 0;
