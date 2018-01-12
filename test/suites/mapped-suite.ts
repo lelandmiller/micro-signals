@@ -1,11 +1,18 @@
 import test = require('tape');
 import {ReadableSignal, Signal} from '../../src';
 import {LeakDetectionSignal} from '../lib/leak-detection-signal';
+import {parentChildSuite} from './parent-child-suite';
 
 export type MappedSignalCreationFunction
     = <T, U>(baseSignal: ReadableSignal<T>, transform: (payload: T) => U) => ReadableSignal<U>;
 
 export function mappedSuite(prefix: string, createMappedSignal: MappedSignalCreationFunction) {
+    parentChildSuite(prefix, () => {
+        const parentSignal = new Signal();
+        const childSignal = createMappedSignal(parentSignal, payload => payload);
+        return { parentSignal, childSignal };
+    });
+
     test(`${prefix} should dispatch with a transformed payload`, t => {
         const baseSignal = new Signal<number>();
 
@@ -31,9 +38,10 @@ export function mappedSuite(prefix: string, createMappedSignal: MappedSignalCrea
         const signal = new LeakDetectionSignal<void>();
         const mappedSignal = createMappedSignal(signal, () => true);
 
-        const binding = mappedSignal.add(() => { /* empty listener */ });
+        const listener = () => { /* empty listener */ };
+        mappedSignal.add(listener);
         signal.dispatch(undefined);
-        binding.detach();
+        mappedSignal.remove(listener);
 
         t.equal(signal.listenerCount, 0);
         t.end();

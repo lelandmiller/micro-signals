@@ -1,11 +1,19 @@
 import test = require('tape');
+
 import {LeakDetectionSignal} from '../lib/leak-detection-signal';
+import {parentChildSuite} from './parent-child-suite';
 
 import {ReadableSignal, Signal} from '../../src';
 
 export type ReadOnlySignalCreationFunction = <T>(baseSignal: ReadableSignal<T>) => ReadableSignal<T>;
 
 export function readOnlySuite(prefix: string, createReadOnlySignal: ReadOnlySignalCreationFunction) {
+    parentChildSuite(prefix, () => {
+        const parentSignal = new Signal();
+        const childSignal = createReadOnlySignal(parentSignal);
+        return { parentSignal, childSignal };
+    });
+
     test(`${prefix} forwards payloads and cannot be dispatched`, t => {
         const signal = new Signal<string>();
 
@@ -16,19 +24,21 @@ export function readOnlySuite(prefix: string, createReadOnlySignal: ReadOnlySign
         const receivedPayloadsAddListener: string[] = [];
         const receivedPayloadsAddOnceListener: string[] = [];
 
-        const addBinding = readOnlySignal.add(payload => {
+        const addListener = (payload: string) => {
             receivedPayloadsAddListener.push(payload);
-        });
+        };
+        readOnlySignal.add(addListener);
 
-        const addOnceBinding = readOnlySignal.addOnce(payload => {
+        const addOnceListener = (payload: string) => {
             receivedPayloadsAddOnceListener.push(payload);
-        });
+        };
+        readOnlySignal.addOnce(addOnceListener);
 
         signal.dispatch('b');
         signal.dispatch('c');
 
-        addBinding.detach();
-        addOnceBinding.detach();
+        readOnlySignal.remove(addListener);
+        readOnlySignal.remove(addOnceListener);
 
         signal.dispatch('d');
 
@@ -43,11 +53,13 @@ export function readOnlySuite(prefix: string, createReadOnlySignal: ReadOnlySign
         const signal = new LeakDetectionSignal<void>();
         const readOnlySignal = createReadOnlySignal(signal);
 
-        const binding = readOnlySignal.add(() => { /* empty listener */ });
+        const listener = () => { /* empty listener */ };
+        readOnlySignal.add(listener);
         signal.dispatch(undefined);
-        binding.detach();
+        readOnlySignal.remove(listener);
 
         t.equal(signal.listenerCount, 0);
         t.end();
     });
+
 }

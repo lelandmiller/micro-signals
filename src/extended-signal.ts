@@ -1,19 +1,18 @@
-import {BaseSignal, Listener, ReadableSignal, SignalBinding} from './interfaces';
-
-function detachBindings(bindings: SignalBinding[]): void {
-    bindings.forEach(binding => binding.detach());
-}
+import {BaseSignal, Listener, ReadableSignal} from './interfaces';
 
 export class ExtendedSignal<T> implements ReadableSignal<T> {
     public static merge<U>(...signals: BaseSignal<U>[]): ReadableSignal<U> {
+        const listeners = new Map<any, any>();
         return new ExtendedSignal({
-            add: listener  => {
-                const bindings = signals.map(signal => signal.add(listener));
-                return {
-                    detach() {
-                        detachBindings(bindings);
-                    },
-                };
+            add(listener) {
+                const newListener = (payload: U) => listener(payload);
+                listeners.set(listener, newListener);
+                signals.forEach(signal => signal.add(newListener));
+            },
+            remove(listener) {
+                const newListener = listeners.get(listener);
+                listeners.delete(listener);
+                signals.forEach(signal => signal.remove(newListener));
             },
         });
     }
@@ -22,43 +21,75 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
         rejectSignal?: BaseSignal<any>,
     ): Promise<U> {
         return new Promise<U>((resolve, reject) => {
-            const bindings: SignalBinding[] = [];
-            if (rejectSignal) {
-                bindings.push(rejectSignal.add(payload => {
-                    detachBindings(bindings);
-                    reject(payload);
-                }));
+            function clearListeners() {
+                resolveSignal.remove(completeResolution);
+                if (rejectSignal) {
+                    rejectSignal.remove(completeRejection);
+                }
             }
-            bindings.push(resolveSignal.add(payload => {
-                detachBindings(bindings);
+
+            function completeRejection(payload: any) {
+                clearListeners();
+                reject(payload);
+            }
+
+            function completeResolution(payload: U) {
+                clearListeners();
                 resolve(payload);
-            }));
+            }
+
+            resolveSignal.add(completeResolution);
+            if (rejectSignal) {
+                rejectSignal.add(completeRejection);
+            }
         });
     }
+    private _addOnceListenerMap = new WeakMap<any, Listener<T>>();
     constructor(private _baseSignal: BaseSignal<T>) {}
-    public add(listener: Listener<T>): SignalBinding {
-        return this._baseSignal.add(listener);
+    public add(listener: Listener<T>): void {
+        this._baseSignal.add(listener);
     }
-    public addOnce(listener: Listener<T>): SignalBinding {
-        const binding = this._baseSignal.add(payload => {
-            binding.detach();
+    public remove(listener: Listener<T>): void {
+        const oneTimeListener = this._addOnceListenerMap.get(listener);
+        if (oneTimeListener) {
+            this._baseSignal.remove(oneTimeListener);
+            this._addOnceListenerMap.delete(listener);
+        }
+        this._baseSignal.remove(listener);
+    }
+    public addOnce(listener: Listener<T>): void {
+        // to match the set behavior of add, only add the listener if the listener is not already
+        // registered
+        if (this._addOnceListenerMap.has(listener)) {
+            return;
+        }
+        const oneTimeListener = (payload: T) => {
+            this._baseSignal.remove(oneTimeListener);
             listener(payload);
-        });
-        return binding;
+        };
+        // TODO remove this once tokens are fully supported
+        this._addOnceListenerMap.set(listener, oneTimeListener);
+        this._baseSignal.add(oneTimeListener);
     }
     public filter(filter: (payload: T) => boolean): ReadableSignal<T> {
-        return new ExtendedSignal({
-            add: listener => this._baseSignal.add(payload => {
-                if (filter(payload)) {
-                    listener(payload);
-                }
-            }),
-        });
+        return new ExtendedSignal(
+            convertedListenerSignal(
+                this._baseSignal,
+                listener => payload => {
+                    if (filter(payload)) {
+                        listener(payload);
+                    }
+                },
+            ),
+        );
     }
     public map<U>(transform: (payload: T) => U): ReadableSignal<U> {
-        return new ExtendedSignal({
-            add: listener => this._baseSignal.add((payload: T) => listener(transform(payload))),
-        });
+        return new ExtendedSignal(
+            convertedListenerSignal(
+                this._baseSignal,
+                listener => payload => listener(transform(payload)),
+            ),
+        );
     }
     public merge<U>(...signals: BaseSignal<U>[]): ReadableSignal<T|U> {
         return ExtendedSignal.merge<T|U>(this._baseSignal, ...signals);
@@ -67,8 +98,37 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
         return ExtendedSignal.promisify(this._baseSignal, rejectSignal);
     }
     public readOnly(): ReadableSignal<T> {
-        return new ExtendedSignal({
-            add: listener => this._baseSignal.add(listener),
-        });
+        return new ExtendedSignal(
+            convertedListenerSignal(
+                this._baseSignal,
+                listener => payload => listener(payload),
+            ),
+        );
     }
+}
+
+/**
+ * Provides a new signal, with its own set of listeners, and the ability to transform listeners that
+ * are added to the new signal.
+ */
+function convertedListenerSignal<BaseType, ExtendedType>(
+    baseSignal: BaseSignal<BaseType>,
+    convertListener: (listener: Listener<ExtendedType>) => Listener<BaseType>,
+): BaseSignal<ExtendedType> {
+    const listenerMap = new Map<Listener<ExtendedType>, Listener<BaseType>>();
+    return new ExtendedSignal({
+        add: listener => {
+            const newListener = convertListener(listener);
+            listenerMap.set(listener, newListener);
+            baseSignal.add(newListener);
+        },
+        remove: listener => {
+            const newListener = listenerMap.get(listener);
+            listenerMap.delete(listener);
+            // TODO undefined ok in other case
+            if (newListener !== undefined) {
+                baseSignal.remove(newListener);
+            }
+        },
+    });
 }
