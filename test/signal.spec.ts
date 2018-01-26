@@ -10,6 +10,43 @@ import {mergedSuite} from './suites/merged-suite';
 import {promisifySuite} from './suites/promisify-suite';
 import {readOnlySuite} from './suites/read-only-suite';
 
+// TODO run the signal suite on the converted signals as well?
+
+filteredSuite(
+    'Signal#filter',
+    (baseSignal, filter) => baseSignal.filter(filter),
+);
+
+mappedSuite(
+    'Signal#map',
+    (baseSignal, transform) => baseSignal.map(transform),
+);
+
+mergedSuite(
+    'Signal#merge',
+    (baseSignal, ...signals) => baseSignal.merge(...signals),
+);
+
+mergedSuite(
+    'Signal.merge',
+    (baseSignal, ...signals) => Signal.merge(baseSignal, ...signals),
+);
+
+promisifySuite(
+    'Signal#promisify',
+    (resolveSignal, rejectSignal?) => resolveSignal.promisify(rejectSignal),
+);
+
+promisifySuite(
+    'Signal.promisify',
+    (resolveSignal, rejectSignal?) => Signal.promisify(resolveSignal, rejectSignal),
+);
+
+readOnlySuite(
+    'Signal#readOnly',
+    signal => signal.readOnly(),
+);
+
 test('Signal listeners should received dispatched payloads', t => {
     const signal = new Signal<string>();
 
@@ -43,22 +80,41 @@ test('Signal listener should be called only once when using addOnce', t => {
     t.end();
 });
 
-test('Signal calling detach on a binding should prevent that listener from receiving dispatched', t => {
+test('Signal removing a one time listener should prevent it from being called ', t => {
+    const receivedPayloads: string[] = [];
+
+    const signal = new Signal<string>();
+
+    const addOnceListener = (payload: string) => receivedPayloads.push(payload);
+    signal.addOnce(addOnceListener);
+
+    signal.remove(addOnceListener);
+    signal.dispatch('a');
+
+    t.deepEqual(receivedPayloads, []);
+
+    t.end();
+});
+
+test('Signal removing a listener should stop further updates', t => {
     const receivedPayloadsListener1: string[] = [];
     const receivedPayloadsListener2: string[] = [];
     const receivedPayloadsListener3: string[] = [];
 
     const signal = new Signal<string>();
 
-    const binding1 = signal.add((payload: string) => receivedPayloadsListener1.push(payload));
-    const binding2 = signal.add((payload: string) => receivedPayloadsListener2.push(payload));
-    const addOnceBinding = signal.addOnce((payload: string) => receivedPayloadsListener3.push(payload));
+    const listener1 = (payload: string) => receivedPayloadsListener1.push(payload);
+    signal.add(listener1);
+    const listener2 = (payload: string) => receivedPayloadsListener2.push(payload);
+    signal.add(listener2);
+    const addOnceListener = (payload: string) => receivedPayloadsListener3.push(payload);
+    signal.addOnce(addOnceListener);
 
-    addOnceBinding.detach();
+    signal.remove(addOnceListener);
     signal.dispatch('a');
-    binding1.detach();
+    signal.remove(listener1);
     signal.dispatch('b');
-    binding2.detach();
+    signal.remove(listener2);
     signal.dispatch('c');
 
     t.deepEqual(receivedPayloadsListener1, ['a']);
@@ -95,37 +151,21 @@ test('Signal methods should be chainable', t => {
     t.end();
 });
 
-filteredSuite(
-    'Signal#filter',
-    (baseSignal, filter) => baseSignal.filter(filter),
-);
+test('addOnce should the same as add when adding a listener multiple times', t => {
+    const s1 = new Signal<number>();
 
-mappedSuite(
-    'Signal#map',
-    (baseSignal, transform) => baseSignal.map(transform),
-);
+    const payloads: number[] = [];
 
-mergedSuite(
-    'Signal#merge',
-    (baseSignal, ...signals) => baseSignal.merge(...signals),
-);
+    const listener = (payload: number) => payloads.push(payload);
 
-mergedSuite(
-    'Signal.merge',
-    (baseSignal, ...signals) => Signal.merge(baseSignal, ...signals),
-);
+    s1.addOnce(listener);
+    s1.addOnce(listener);
 
-promisifySuite(
-    'Signal#promisify',
-    (resolveSignal, rejectSignal?) => resolveSignal.promisify(rejectSignal),
-);
+    s1.remove(listener);
 
-promisifySuite(
-    'Signal.promisify',
-    (resolveSignal, rejectSignal?) => Signal.promisify(resolveSignal, rejectSignal),
-);
+    s1.dispatch(1);
 
-readOnlySuite(
-    'Signal#readOnly',
-    signal => signal.readOnly(),
-);
+    t.deepEqual(payloads, []);
+
+    t.end();
+});

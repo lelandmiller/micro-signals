@@ -1,10 +1,17 @@
 import test = require('tape');
 import {ReadableSignal, Signal} from '../../src';
 import {LeakDetectionSignal} from '../lib/leak-detection-signal';
+import {parentChildSuite} from './parent-child-suite';
 
 export type ReadableSignalCreationFunction = <T>(...signals: ReadableSignal<T>[]) => ReadableSignal<T>;
 
 export function mergedSuite(prefix: string, createMergedSignal: ReadableSignalCreationFunction) {
+    parentChildSuite(prefix, () => {
+        const parentSignal = new Signal();
+        const childSignal = createMergedSignal(parentSignal);
+        return { parentSignal, childSignal };
+    });
+
     test(`${prefix} should dispatch when any of the provided signals are dispatched`, t => {
         const baseSignalString = new Signal<string>();
         const baseSignalNumber = new Signal<number>();
@@ -39,10 +46,11 @@ export function mergedSuite(prefix: string, createMergedSignal: ReadableSignalCr
         const signal2 = new LeakDetectionSignal<void>();
         const mergedSignal = createMergedSignal(signal1, signal2);
 
-        const binding = mergedSignal.add(() => { /* empty listener */ });
+        const listener = () => { /* empty listener */ };
+        mergedSignal.add(listener);
         signal1.dispatch(undefined);
         signal2.dispatch(undefined);
-        binding.detach();
+        mergedSignal.remove(listener);
 
         t.equal(signal1.listenerCount, 0);
         t.equal(signal2.listenerCount, 0);

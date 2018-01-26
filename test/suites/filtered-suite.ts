@@ -1,11 +1,19 @@
 import test = require('tape');
+
 import {ReadableSignal, Signal} from '../../src/index';
 import {LeakDetectionSignal} from '../lib/leak-detection-signal';
+import {parentChildSuite} from './parent-child-suite';
 
 export type FilteredSignalCreationFunction
     = <T>(baseSignal: ReadableSignal<T>, filter: (payload: T) => boolean) => ReadableSignal<T>;
 
 export function filteredSuite(prefix: string, createFilteredSignal: FilteredSignalCreationFunction) {
+    parentChildSuite(prefix, () => {
+        const parentSignal = new Signal();
+        const childSignal = createFilteredSignal(parentSignal, () => true);
+        return { parentSignal, childSignal };
+    });
+
     test(`${prefix} listeners should received dispatched payloads when filter returns true`, t => {
         const signal = new Signal<string>();
         const filteredSignal = createFilteredSignal(signal, payload => payload === 'a');
@@ -49,36 +57,46 @@ export function filteredSuite(prefix: string, createFilteredSignal: FilteredSign
         t.end();
     });
 
-    test(`${prefix} calling detach on a binding should prevent that listener from receiving dispatched`, t => {
-        const receivedPayloadsListener1: string[] = [];
-        const receivedPayloadsListener2: string[] = [];
-        const receivedPayloadsListener3: string[] = [];
+    test(`${prefix} removing a listener should prevent further updates`, t => {
+        const receivedPayloads1: string[] = [];
+        const receivedPayloads2: string[] = [];
+        const receivedPayloads3: string[] = [];
+        const addOncePayloads: string[] = [];
 
         const signal = new Signal<string>();
         const filteredSignal = createFilteredSignal(signal, payload => payload === 'a');
 
-        const binding1 = filteredSignal.add(payload => {
-            receivedPayloadsListener1.push(payload);
-        });
+        const listener1 = (payload: string) => {
+            receivedPayloads1.push(payload);
+        };
+        filteredSignal.add(listener1);
 
-        const binding2 = filteredSignal.add(payload => {
-            receivedPayloadsListener2.push(payload);
-        });
+        const listener2 = (payload: string) => {
+            receivedPayloads2.push(payload);
+        };
+        filteredSignal.add(listener2);
 
-        const addOnceBinding = filteredSignal.addOnce(payload => {
-            receivedPayloadsListener3.push(payload);
-        });
+        const listener3 = (payload: string) => {
+            receivedPayloads3.push(payload);
+        };
+        filteredSignal.add(listener3);
 
-        addOnceBinding.detach();
+        const addOnceListener = (payload: string) => {
+            addOncePayloads.push(payload);
+        };
+        filteredSignal.addOnce(addOnceListener);
+
+        filteredSignal.remove(addOnceListener);
+        filteredSignal.remove(listener1);
         signal.dispatch('a');
-        binding1.detach();
+        filteredSignal.remove(listener2);
         signal.dispatch('a');
-        binding2.detach();
-        signal.dispatch('a');
+        filteredSignal.remove(listener3);
 
-        t.deepEqual(receivedPayloadsListener1, ['a']);
-        t.deepEqual(receivedPayloadsListener2, ['a', 'a']);
-        t.deepEqual(receivedPayloadsListener3, []);
+        t.deepEqual(receivedPayloads1, []);
+        t.deepEqual(receivedPayloads2, ['a']);
+        t.deepEqual(receivedPayloads3, ['a', 'a']);
+        t.deepEqual(addOncePayloads, []);
 
         t.end();
     });
@@ -87,9 +105,10 @@ export function filteredSuite(prefix: string, createFilteredSignal: FilteredSign
         const signal = new LeakDetectionSignal<void>();
         const filteredSignal = createFilteredSignal(signal, () => true);
 
-        const binding = filteredSignal.add(() => { /* empty listener */ });
+        const listener = () => { /* empty listener */ };
+        filteredSignal.add(listener);
         signal.dispatch(undefined);
-        binding.detach();
+        filteredSignal.remove(listener);
 
         t.equal(signal.listenerCount, 0);
         t.end();

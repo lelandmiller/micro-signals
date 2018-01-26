@@ -6,6 +6,48 @@ A tiny typed messaging system inspired by js-signals that uses ES2015 sets
 [![codecov](https://codecov.io/gh/lelandmiller/micro-signals/branch/master/graph/badge.svg)](https://codecov.io/gh/lelandmiller/micro-signals)
 [![The Aj](https://img.shields.io/badge/The_Aj-verified-brightgreen.svg)](https://www.linkedin.com/in/ajay-kodali-1281553/)
 
+## Path to Version 2
+
+Version 2 of micro-signals will introduce some breaking interface changes. Most notably will be a
+shift from using bindings to a remove method on the signal itself. While bindings were a very nice
+interface, these changes will allow us to achieve late listener support (memorized signals) in a
+synchronous signal with a reduced chance for user error.
+
+Previously, adding late listener support had been put off due to the inability to access the return
+value of a listener during the initial cached dispatch of the signal (which would need to happen
+while adding the signal). In addition, attempting to use the binding could throw an error during
+the initial call if the user did not check for the availability of a binding. We considered
+several ways around these issues:
+
+1.  Make micro-signals asynchronous
+
+    If a dispatch always calls the listener asynchronously then the binding is always available
+    during the initial call of the listener function, whether a cached value or not. However, some
+    projects may require the use of micro-signals in an environment where asynchronous behavior
+    is not desirable or easy to implement. A synchronous signal still supports asynchronous
+    dispatching (an asynchronous action can be triggered from the listener), but an asynchronous
+    signal does not allow for synchronous action dispatching.
+
+2.  Pass a binding to the listener
+
+    This would ensure that the listener always had a valid reference to the binding. However, the
+    user still needs a way to detach a listener that has not been called yet which, if we
+    continued to use the binding interface, would mean there is still a binding returned from the
+    add function. This could be an easy spot for user error, as forgetting to use the binding
+    passed into a listener would cause the same errors mentioned above.
+
+3.  Do not use bindings
+
+    If we use add and remove methods on signals, we can be sure we are always able to remove during
+    a listener add operation.
+
+Several variations of the above were considered, but at the end of it all, option 3 seemed to be the
+cleanest way to provide a synchronous signal with late listener support that avoided the most
+opportunities for user error.
+
+In order to add some of the convenience of bindings back to the API, there are plans to add the
+ability to tag a listener and then remove listeners based on either listener or tags.
+
 ## About
 
 micro-signals is an attempt to provide a simple and flexible signal library for TypeScript and
@@ -27,7 +69,7 @@ Install using `npm install micro-signals`.
 
 ## Signal
 
-Signals return a binding with a detach method, similar to js-signals, but with methods that can
+Signals allow adding and removing listeners, similar to js-signals, but with methods that can
 create new transformed signals (such as map and filter). These methods are similar to the matching
 methods on a JavaScript array. Each provides a new Signal (it does not modify the current signal)
 and is chainable. All of the Signals described below (MappedSignal, FilteredSignal, etc.) have a
@@ -43,13 +85,14 @@ const signal = new Signal<string>();
 
 const received: string[] = [];
 
-const binding = signal.add(payload => {
+const listener = (payload: string) => {
     received.push(payload);
-});
+};
+signal.add(listener);
 
 signal.dispatch('a');
 
-binding.detach();
+signal.remove(listener);
 
 signal.dispatch('b');
 
@@ -271,13 +314,10 @@ const emitter = new EventEmitter();
 
 const signal = new ExtendedSignal<number>({
     add(listener) {
-        const cb = (value: number) => listener(value);
-        emitter.on('event', cb);
-        return {
-            detach() {
-                emitter.removeListener('event', cb);
-            }
-        };
+        emitter.on('event', listener);
+    },
+    remove(listener) {
+        emitter.removeListener('event', listener);
     },
 });
 
@@ -325,27 +365,22 @@ Several interfaces are exported as well for convenience:
 
 -   Listener is an interface that defines a function that can be passed to Signal methods taking a
     listener (such as add or addOnce).
--   SignalBinding is what is returned from adding a listener, it is the object with the detach
-    method.
 -   ReadableSignal is an interface for a Signal without dispatch.
 -   WritableSignal only defines the dispatch method.
 
 ```ts
-import {Signal, Listener, ReadableSignal, SignalBinding, WritableSignal} from 'micro-signals';
+import {Signal, Listener, ReadableSignal, WritableSignal} from 'micro-signals';
 
 const listener: Listener<string> = payload => console.log(payload);
-
-// SignalBindings are returned when attaching a listener
-let binding: SignalBinding;
 
 const signal = new Signal<string>();
 
 // A ReadableSignal cannot be dispatched
 const readable: ReadableSignal<string> = signal;
 
-binding = readable.add(listener);
+readable.add(listener);
 
-// A WritableSignal can only be dispatched
+// A WritableSignal can be dispatched
 const writable: WritableSignal<string> = signal;
 
 writable.dispatch('hello!');

@@ -8,9 +8,9 @@ export class Signal<T> extends ExtendedSignal<T> implements WritableSignal<T> {
         super({
             add: listener => {
                 this._listeners.add(listener);
-                return {
-                    detach: () => this._listeners.delete(listener),
-                };
+            },
+            remove: listener => {
+                this._listeners.delete(listener);
             },
         });
     }
