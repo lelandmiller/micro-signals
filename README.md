@@ -225,6 +225,27 @@ filteredSignal.add(payload => {
 assert.deepEqual(received, [0, 6, 8, 0]);
 ```
 
+Signal.filter also returns a signal of the correct type when filtering using a type predicate.
+
+```ts
+import {Signal} from 'micro-signals';
+import * as assert from 'assert';
+
+const signal = new Signal<string | null>();
+const filteredSignal = signal.filter((x: string | null): x is string => typeof x === 'string');
+
+const received: number[] = [];
+
+filteredSignal.add(payload => {
+    // note that the payload type is `string` instead of `string | null`
+    received.push(payload.length);
+});
+
+['1', null, '12', null, '123'].forEach(x => signal.dispatch(x));
+
+assert.deepEqual(received, [1, 2, 3]);
+```
+
 ### Signal.map
 
 Signal.map provides the ability to transform payloads coming through a Signal, similar to mapping an
