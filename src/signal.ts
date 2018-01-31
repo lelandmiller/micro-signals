@@ -1,8 +1,9 @@
 import {Listener, WritableSignal} from './interfaces';
 
 import {ExtendedSignal} from './extended-signal';
+import { ReadableSignal } from './index';
 
-export class Signal<T> extends ExtendedSignal<T> implements WritableSignal<T> {
+export class Signal<T> extends ExtendedSignal<T> implements WritableSignal<T>, ReadableSignal<T> {
     protected _listeners = new Set<Listener<T>>();
     constructor() {
         super({

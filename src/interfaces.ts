@@ -14,7 +14,6 @@ export interface ReadableSignal<T> extends BaseSignal<T> {
     readOnly(): ReadableSignal<T>;
 }
 
-// TODO Writable should only be writable
-export interface WritableSignal<T> extends ReadableSignal<T> {
+export interface WritableSignal<T> {
     dispatch: (payload: T) => void;
 }
