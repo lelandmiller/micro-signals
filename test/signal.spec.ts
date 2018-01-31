@@ -1,6 +1,7 @@
 import test = require('tape');
 
 import {
+    ReadableSignal,
     Signal,
 } from '../src';
 
@@ -76,6 +77,27 @@ test('Signal listener should be called only once when using addOnce', t => {
     }
 
     t.equal(callCount, 1);
+
+    t.end();
+});
+
+/**
+ * This tests the type of the filter function exclusively. There is no runtime assertion in this
+ * test, but this test will fail the TypeScript typechecker if we have broken this functionality.
+ */
+test('filter types should allow for filtering using type predicates correctly', t => {
+    function isString(x: any): x is string {
+        return typeof x === 'string';
+    }
+
+    const signal = new Signal<undefined | string>();
+    const readableSignal: ReadableSignal<undefined | string> = new Signal();
+
+    const filteredSignal = signal.filter(isString);
+    const filteredReadableSignal = readableSignal.filter(isString);
+
+    filteredSignal.add(s => s.length);
+    filteredReadableSignal.add(s => s.length);
 
     t.end();
 });

@@ -7,6 +7,7 @@ export interface BaseSignal<T> {
 
 export interface ReadableSignal<T> extends BaseSignal<T> {
     addOnce(listener: Listener<T>): void;
+    filter<U extends T>(filter: (payload: T) => payload is U): ReadableSignal<U>;
     filter(filter: (payload: T) => boolean): ReadableSignal<T>;
     map<U>(transform: (payload: T) => U): ReadableSignal<U>;
     merge<U>(...signals: ReadableSignal<U>[]): ReadableSignal<T|U>;

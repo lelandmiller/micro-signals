@@ -71,6 +71,8 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
         this._addOnceListenerMap.set(listener, oneTimeListener);
         this._baseSignal.add(oneTimeListener);
     }
+    public filter<U extends T>(filter: (payload: T) => payload is U): ReadableSignal<U>;
+    public filter(filter: (payload: T) => boolean): ReadableSignal<T>;
     public filter(filter: (payload: T) => boolean): ReadableSignal<T> {
         return new ExtendedSignal(
             convertedListenerSignal(
