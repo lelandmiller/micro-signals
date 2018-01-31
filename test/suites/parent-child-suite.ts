@@ -1,9 +1,9 @@
 import test = require('tape');
 
-import { BaseSignal, WritableSignal } from '../../src';
+import { BaseSignal, ReadableSignal, WritableSignal } from '../../src';
 
 export interface SignalSet {
-    parentSignal: WritableSignal<any>;
+    parentSignal: ReadableSignal<any> & WritableSignal<any>;
     childSignal: BaseSignal<any>;
 }
 
