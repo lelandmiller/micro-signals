@@ -13,8 +13,14 @@ export interface ReadableSignal<T> extends BaseSignal<T> {
     merge<U>(...signals: ReadableSignal<U>[]): ReadableSignal<T|U>;
     promisify(rejectSignal?: ReadableSignal<any>): Promise<T>;
     readOnly(): ReadableSignal<T>;
+    cache(cache: Cache<T>): ReadableSignal<T>;
 }
 
 export interface WritableSignal<T> {
     dispatch: (payload: T) => void;
+}
+
+export interface Cache<T> {
+    add(payload: T): void;
+    forEach(callback: (payload: T) => void): void;
 }

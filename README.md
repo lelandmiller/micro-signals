@@ -176,7 +176,74 @@ promise.then(() => console.log('success')).catch(() => console.error('failure'))
 
 ### Instance Methods
 
-### Signal.readOnly
+#### Signal.cache
+
+Signal.cache is used to provide late listener support to signals. It takes a cache instance that
+is responsible for determining what values are dispatched to late listeners, and returns a signal
+that will provide all cached values to new listeners.
+
+These caches implement a simple interface consisting of an add function to process values
+that have been dispatched by the base signal and a forEach function to iterate over values that
+should be provided to late listeners.
+
+Two basic cache types are provided to cover the most common use cases for cached signals.
+ValueCache replays the most recent value (similar to memorize in js-signals) and CollectionCache
+replays all dispatched values.
+
+```ts
+import {Signal, ValueCache, CollectionCache} from 'micro-signals';
+import * as assert from 'assert';
+
+const signal = new Signal<string>();
+const valueCached = signal.cache(new ValueCache());
+const collectionCached = signal.cache(new CollectionCache());
+
+const valueCachedReceived: string[] = [];
+const collectionCachedReceived: string[] = [];
+
+['a', 'b', 'c'].forEach(payload => signal.dispatch(payload));
+
+valueCached.add(payload => valueCachedReceived.push(payload));
+collectionCached.add(payload => collectionCachedReceived.push(payload));
+
+['d', 'e'].forEach(payload => signal.dispatch(payload));
+
+assert.deepEqual(valueCachedReceived, ['c', 'd', 'e']);
+assert.deepEqual(collectionCachedReceived, ['a', 'b', 'c', 'd', 'e']);
+```
+
+Please note, there is currently not a way to unbind the cached signal from its base signal. This has
+the potential to leak attached listeners. In practice this may not be an issue for most use cases.
+Many use cases may have the base signal and the cached signal on the same object. For example:
+
+```ts
+import {Signal, ValueCache} from 'micro-signals';
+import * as assert from 'assert';
+
+class ToggleState {
+    private _stateChanged = new Signal<boolean>();
+    public stateChanged = this._stateChanged.cache(new ValueCache());
+
+    public setState(state: boolean) {
+        this._stateChanged.dispatch(state);
+    }
+}
+
+const toggleState = new ToggleState();
+
+toggleState.setState(true);
+let state = undefined;
+toggleState.stateChanged.add(toggleState => state = toggleState);
+
+assert.strictEqual(state, true);
+```
+
+In this case both signals will become unreachable at the same time, and therefore the base signal
+will never prevent any cleanup of the cached signal and its context. In many other cases this
+leaking may be negligible as well. However, if this functionality is desired, please file an issue
+or pull request against the repository.
+
+#### Signal.readOnly
 
 readOnly provides a wrapper around a signal with no dispatch method. This is primarily used to
 publicly expose a signal while indicating that consumers of the signal should not dispatch the
@@ -202,7 +269,7 @@ signal.dispatch('a');
 assert.deepEqual(received, ['a']);
 ```
 
-### Signal.filter
+#### Signal.filter
 
 Signal.filter provides the ability to filter values coming through a Signal, similar to filtering an
 array in JavaScript.
@@ -246,7 +313,7 @@ filteredSignal.add(payload => {
 assert.deepEqual(received, [1, 2, 3]);
 ```
 
-### Signal.map
+#### Signal.map
 
 Signal.map provides the ability to transform payloads coming through a Signal, similar to mapping an
 array in JavaScript.
@@ -269,7 +336,7 @@ mappedSignal.add(payload => {
 assert.deepEqual(received, ['cat!', 'dog!', 'frog!', 'sloth!']);
 ```
 
-### Signal.merge
+#### Signal.merge
 
 Signal.merge takes an arbitrary number of signals as constructor arguments and forward payloads from
 all of the provided signals and the base signal. This allow multiplexing of Signals. Effectively it
@@ -297,7 +364,7 @@ signal1.dispatch('!');
 assert.deepEqual(received, ['Hello', 'world', '!']);
 ```
 
-### Signal.promisify
+#### Signal.promisify
 
 Turn signals into promises. The base signal is a resolution signal. When the resolution signal is
 dispatched the promise will be resolved with the dispatched value. The second argument is an
