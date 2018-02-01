@@ -81,11 +81,27 @@ test('Signal listener should be called only once when using addOnce', t => {
     t.end();
 });
 
+test('Signal listener should only be added once when using addOnce to match behavior of add', t => {
+    const signal = new Signal<void>();
+    let callCount = 0;
+
+    const listener = () => callCount++;
+
+    signal.addOnce(listener);
+    signal.addOnce(listener);
+
+    signal.dispatch(undefined);
+
+    t.equal(callCount, 1);
+
+    t.end();
+});
+
 /**
  * This tests the type of the filter function exclusively. There is no runtime assertion in this
  * test, but this test will fail the TypeScript typechecker if we have broken this functionality.
  */
-test('filter types should allow for filtering using type predicates correctly', t => {
+test('Signal.filter types should allow for filtering using type predicates correctly', t => {
     function isString(x: any): x is string {
         return typeof x === 'string';
     }

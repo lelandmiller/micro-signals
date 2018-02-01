@@ -1,12 +1,12 @@
 export type Listener<T> = (payload: T) => void;
 
 export interface BaseSignal<T> {
-    add(listener: Listener<T>): void;
-    remove(listener: Listener<T>): void;
+    add(listener: Listener<T>, ...tags: any[]): void;
+    remove(listenerOrTag: any): void;
 }
 
 export interface ReadableSignal<T> extends BaseSignal<T> {
-    addOnce(listener: Listener<T>): void;
+    addOnce(listener: Listener<T>, ...tags: any[]): void;
     filter<U extends T>(filter: (payload: T) => payload is U): ReadableSignal<U>;
     filter(filter: (payload: T) => boolean): ReadableSignal<T>;
     map<U>(transform: (payload: T) => U): ReadableSignal<U>;
