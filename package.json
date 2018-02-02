@@ -20,7 +20,8 @@
     "lint": "tslint --project ./tsconfig.json",
     "test": "yarn lint && nyc tape 'test/*.ts' | faucet && nyc report",
     "build": "rimraf lib && tsc -p tsconfig.build.json",
-    "prepublishOnly": "yarn && yarn test && yarn build"
+    "prepublishOnly": "yarn && yarn test && yarn build",
+    "postpublish": "git push --follow-tags"
   },
   "repository": {
     "type": "git",
