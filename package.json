@@ -21,7 +21,7 @@
     "test": "yarn lint && nyc tape 'test/*.ts' | faucet && nyc report",
     "build": "rimraf lib && tsc -p tsconfig.build.json",
     "prepublishOnly": "yarn && yarn test && yarn build",
-    "postpublish": "git push --follow-tags"
+    "postpublish": "echo \"Do not forget to push the version commit and tag! `git push --follow-tags`\""
   },
   "repository": {
     "type": "git",
