@@ -1,4 +1,5 @@
 import {BaseSignal, Cache, Listener, ReadableSignal} from './interfaces';
+import { TagMap } from './tag-map';
 
 export class ExtendedSignal<T> implements ReadableSignal<T> {
     public static merge<U>(...signals: BaseSignal<U>[]): ReadableSignal<U> {
@@ -44,31 +45,32 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
             }
         });
     }
-    private _addOnceListenerMap = new WeakMap<any, Listener<T>>();
+    private _tagMap = new TagMap();
     constructor(private _baseSignal: BaseSignal<T>) {}
-    public add(listener: Listener<T>): void {
+    public add(listener: Listener<T>, ...tags: any[]): void {
+        this._tagMap.setListeners(listener, ...tags);
         this._baseSignal.add(listener);
     }
-    public remove(listener: Listener<T>): void {
-        const oneTimeListener = this._addOnceListenerMap.get(listener);
-        if (oneTimeListener) {
-            this._baseSignal.remove(oneTimeListener);
-            this._addOnceListenerMap.delete(listener);
-        }
-        this._baseSignal.remove(listener);
+    public remove(listenerOrTag: any): void {
+        this._tagMap.getListeners(listenerOrTag)
+            .forEach(taggedListener => {
+                this._baseSignal.remove(taggedListener);
+                this._tagMap.clearListener(taggedListener);
+            });
+        this._baseSignal.remove(listenerOrTag);
+        this._tagMap.clearListener(listenerOrTag);
     }
-    public addOnce(listener: Listener<T>): void {
+    public addOnce(listener: Listener<T>, ...tags: any[]): void {
         // to match the set behavior of add, only add the listener if the listener is not already
-        // registered
-        if (this._addOnceListenerMap.has(listener)) {
+        // registered, don't add the same listener twice
+        if (this._tagMap.getListeners(listener).size > 0) {
             return;
         }
         const oneTimeListener = (payload: T) => {
             this._baseSignal.remove(oneTimeListener);
             listener(payload);
         };
-        // TODO remove this once tokens are fully supported
-        this._addOnceListenerMap.set(listener, oneTimeListener);
+        this._tagMap.setListeners(oneTimeListener, listener, ...tags);
         this._baseSignal.add(oneTimeListener);
     }
     public filter<U extends T>(filter: (payload: T) => payload is U): ReadableSignal<U>;

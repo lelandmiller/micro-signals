@@ -1,6 +1,6 @@
 {
   "name": "micro-signals",
-  "version": "1.1.1",
+  "version": "2.0.0-2",
   "description": "A tiny typed messaging system inspired by js-signals that uses ES2015 sets",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -18,10 +18,10 @@
   },
   "scripts": {
     "lint": "tslint --project ./tsconfig.json",
-    "test": "npm run lint && nyc tape 'test/*.ts' | faucet && nyc report",
+    "test": "yarn lint && nyc tape 'test/*.ts' | faucet && nyc report",
     "build": "rimraf lib && tsc -p tsconfig.build.json",
-    "preversion": "npm install && npm test && npm run build",
-    "postversion": "git push --follow-tags && npm publish"
+    "prepublishOnly": "yarn && yarn test && yarn build",
+    "postpublish": "echo \"Do not forget to push the version commit and tag! `git push --follow-tags`\""
   },
   "repository": {
     "type": "git",
@@ -32,7 +32,10 @@
     "signal",
     "TypeScript",
     "ts",
+    "typed",
     "eventer",
+    "events",
+    "event",
     "messaging",
     "pubsub"
   ],

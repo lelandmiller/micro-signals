@@ -4,7 +4,7 @@ import { Cache, CollectionCache, Signal, ValueCache } from '../src';
 import { cacheSuite } from './suites/cache-suite';
 
 // testValues should contain at least 4 items as some tests expect to slice at certain points
-const testValues = Object.freeze([ 0, 2, 4, Infinity, 1, -4, 49, 0 ]);
+const testValues = Object.freeze([0, 2, 4, Infinity, 1, -4, 49, 0]);
 
 function testCache<T>(values: ReadonlyArray<T>): Cache<T> {
     return {
@@ -86,6 +86,20 @@ test('Signal#cache should provide a signal that allows removing during cache rep
     cachedSignal.add(listener);
 
     t.deepEqual(receivedPayloads, testValues.slice(0, 2));
+    t.end();
+});
+
+test('Signal#cached adding a listener to a derived signal should receive the cache', t => {
+    const signal = new Signal<number>();
+    const receivedPayloads: string[] = [];
+
+    const cachedSignal = signal.cache(testCache([1, 2, 3]));
+
+    const mappedSignal = cachedSignal.map(x => x.toString(10));
+
+    mappedSignal.add(payload => receivedPayloads.push(payload));
+
+    t.deepEqual(receivedPayloads, ['1', '2', '3']);
     t.end();
 });
 

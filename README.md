@@ -99,6 +99,42 @@ signal.dispatch('b');
 assert.deepEqual(received, ['a']);
 ```
 
+### Using Tags
+
+Listeners can also be added and removed with tags. Tags can be provided with the listener to the add
+function. If remove is then called with the listener or tag, the listener will be correctly removed.
+An example might be tagging a listener with an instance of the class from within a class, we can
+then remove the listener with only the reference to this. This functionality is provided to
+partially mitigate the loss of bindings and the difficulty that keeping track of listeners can pose
+in some cases. However, this interface does not provide the full convenience of bindings. If there
+are any ideas on improvements in this area, suggestions are welcome.
+
+```ts
+import {Signal} from 'micro-signals';
+import * as assert from 'assert';
+
+class TestConsumer {
+    receivedPayloads: number[] = [];
+    constructor(private _signal: Signal<number>) {
+        this._signal.add(x => this.receivedPayloads.push(x), this);
+    }
+    detach() {
+        this._signal.remove(this);
+    }
+}
+
+const signal = new Signal<number>();
+const testConsumer = new TestConsumer(signal);
+
+signal.dispatch(1);
+
+testConsumer.detach();
+
+signal.dispatch(2);
+
+assert.deepEqual(testConsumer.receivedPayloads, [1]);
+```
+
 ### Using the Extended Signal Interface
 
 ```ts
