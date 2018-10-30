@@ -483,6 +483,52 @@ without storing any state itself. This is how the internal signal transformation
 remove unnecessary intermediate signals. Feel free to use or ignore the ExtendedSignal at your
 discretion.
 
+### Default Listeners
+
+Default listeners allow the signal owner to define some default
+action that should be taken when a signal is dispatched but no
+listeners have been added. Typically this would be used to throw
+or log an error if no listeners are present for an important signal.
+
+Default listeners can be set with either the static 
+setDetaultListener method or the instance setDefaultListener method.
+
+The static default listener will be called on any signal that has
+no listeners present (even if no instance default listener is set).
+
+The instance default listener will only be called when the 
+specific signal instance is dispatched with no listeners present.
+
+
+
+```ts
+import {Signal} from 'micro-signals';
+import * as assert from 'assert';
+
+// static default listener
+const staticPayloads: string[] = [];
+const signal = new Signal<string>();
+
+Signal.setDefaultListener(payload => staticPayloads.push(payload));
+
+signal.dispatch('hello static listener');
+
+assert.equal(staticPayloads.length, 1);
+assert.equal(staticPayloads[0], 'hello static listener');
+
+// instance default listener
+const instancePayloads: string[] = [];
+signal.setDefaultListener(payload => instancePayloads.push(payload));
+
+signal.dispatch('hello instance listener');
+
+// static default listener is not used once instance default listener has been set.
+assert.equal(staticPayloads.length, 1);
+assert.equal(instancePayloads.length, 1);
+assert.equal(instancePayloads[0], 'hello instance listener');
+```
+
+
 ### Interfaces
 
 Several interfaces are exported as well for convenience:
