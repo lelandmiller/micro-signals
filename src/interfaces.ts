@@ -18,6 +18,10 @@ export interface ReadableSignal<T> extends BaseSignal<T> {
 
 export interface WritableSignal<T> {
     dispatch: (payload: T) => void;
+    /**
+     * set a listener to be called if no other listeners are available.
+     */
+    setDefaultListener(listener: Listener<T>): void;
 }
 
 export interface Cache<T> {

@@ -207,3 +207,57 @@ test('addOnce should the same as add when adding a listener multiple times', t =
 
     t.end();
 });
+
+test('dispatches to static default listener if no instance default listener is set', t => {
+    const staticCalls: any[][] = [];
+    const staticDefaultListener = (...args: any[]) => staticCalls.push(args);
+    Signal.setDefaultListener(staticDefaultListener);
+    const s = new Signal<number>();
+    s.dispatch(1);
+    t.equal(staticCalls[0][0], 1);
+    t.end();
+});
+
+test('dispatches to instance default listener when it is set', t => {
+    const staticCalls: any[][] = [];
+    const instanceCalls: any[][] = [];
+    const staticDefaultListener = (...args: any[]) => staticCalls.push(args);
+    const instanceDefaultListener = (...args: any[]) => instanceCalls.push(args);
+    Signal.setDefaultListener(staticDefaultListener);
+    const s = new Signal<number>();
+    s.setDefaultListener(instanceDefaultListener);
+    s.dispatch(1);
+    t.equal(staticCalls.length, 0);
+    t.equal(instanceCalls[0][0], 1);
+    t.end();
+});
+
+test('does not dispatch to static default listener when other listeners have been added', t => {
+    const staticCalls: number[] = [];
+    const staticDefaultListener = (payload: number) => staticCalls.push(payload);
+    Signal.setDefaultListener(staticDefaultListener);
+    const s = new Signal<number>();
+    s.add(() => {
+        // no-op
+    });
+
+    s.dispatch(1);
+
+    t.equal(staticCalls.length, 0);
+    t.end();
+});
+
+test('does not dispatch to static default listener when other listeners have been added', t => {
+    const instanceCalls: number[] = [];
+    const instanceDefaultListener = (payload: number) => instanceCalls.push(payload);
+    const s = new Signal<number>();
+    s.setDefaultListener(instanceDefaultListener);
+    s.add(() => {
+        // no-op
+    });
+
+    s.dispatch(1);
+
+    t.equal(instanceCalls.length, 0);
+    t.end();
+});
