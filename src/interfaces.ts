@@ -1,8 +1,11 @@
 export type Listener<T> = (payload: T) => void;
+export type Catcher = (error: any) => void;
 
 export interface BaseSignal<T> {
     add(listener: Listener<T>, ...tags: any[]): void;
     remove(listenerOrTag: any): void;
+    catch(catcher: Catcher, ...tags: any[]): void;
+    removeCatcher(listenerOrTag: any): void;
 }
 
 export interface ReadableSignal<T> extends BaseSignal<T> {

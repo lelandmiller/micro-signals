@@ -1,32 +1,35 @@
-import {Listener} from './interfaces';
 
-export class TagMap<T> {
-    private _tagToListeners = new WeakMap<any, Set<Listener<T>>>();
-    private _listenerToTags = new WeakMap<Listener<T>, Set<any>>();
-    public setListeners(listener: Listener<T>, ...tags: any[]) {
-        const tagSet = this._listenerToTags.get(listener) || new Set();
+export class TagMap<Thing extends object> {
+    private _tagToThings = new WeakMap<any, Set<Thing>>();
+    private _thingToTags = new WeakMap<Thing, Set<any>>();
+
+    public setHandlers(thing: Thing, ...tags: any[]) {
+        const tagSet = this._thingToTags.get(thing) || new Set();
         tags.forEach(tag => {
-            const listenerSet = this._tagToListeners.get(tag) || new Set();
-            listenerSet.add(listener);
+            const thingSet = this._tagToThings.get(tag) || new Set();
+            thingSet.add(thing);
             tagSet.add(tag);
-            this._tagToListeners.set(tag, listenerSet);
+            this._tagToThings.set(tag, thingSet);
         });
-        this._listenerToTags.set(listener, tagSet);
+        this._thingToTags.set(thing, tagSet);
     }
-    public getListeners(tag: any): Set<Listener<T>> {
-        return this._tagToListeners.get(tag) || new Set();
+
+    public getThings(tag: any): Set<Thing> {
+        return this._tagToThings.get(tag) || new Set();
     }
-    public getTags(listener: Listener<T>): Set<any> {
-        return this._listenerToTags.get(listener) || new Set();
+
+    public getTags(listener: Thing): Set<any> {
+        return this._thingToTags.get(listener) || new Set();
     }
-    public clearListener(listener: Listener<T>) {
-        const tags = this.getTags(listener);
-        this._listenerToTags.delete(listener);
+
+    public clearThing(handler: Thing) {
+        const tags = this.getTags(handler);
+        this._thingToTags.delete(handler);
         tags.forEach(tag => {
-            const listenerSet = this.getListeners(tag);
-            listenerSet.delete(listener);
+            const listenerSet = this.getThings(tag);
+            listenerSet.delete(handler);
             if (listenerSet.size === 0) {
-                this._tagToListeners.delete(tag);
+                this._tagToThings.delete(tag);
             }
         });
     }

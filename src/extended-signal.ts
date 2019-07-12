@@ -1,19 +1,30 @@
-import {BaseSignal, Cache, Listener, ReadableSignal} from './interfaces';
+import {BaseSignal, Cache, Catcher, Listener, ReadableSignal} from './interfaces';
 import { TagMap } from './tag-map';
 
 export class ExtendedSignal<T> implements ReadableSignal<T> {
     public static merge<U>(...signals: BaseSignal<U>[]): ReadableSignal<U> {
         const listeners = new Map<any, any>();
+        const catchers = new Map<any, any>();
         return new ExtendedSignal({
             add(listener) {
                 const newListener = (payload: U) => listener(payload);
                 listeners.set(listener, newListener);
                 signals.forEach(signal => signal.add(newListener));
             },
+            catch(catcher) {
+                const newCatcher = (exception: any) => catcher(exception);
+                catchers.set(catcher, newCatcher);
+                signals.forEach(signal => signal.catch(newCatcher));
+            },
             remove(listener) {
                 const newListener = listeners.get(listener);
                 listeners.delete(listener);
                 signals.forEach(signal => signal.remove(newListener));
+            },
+            removeCatcher(catcher) {
+                const newCatcher = catchers.get(catcher);
+                catchers.delete(catcher);
+                signals.forEach(signal => signal.removeCatcher(newCatcher));
             },
         });
     }
@@ -45,32 +56,50 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
             }
         });
     }
-    private _tagMap = new TagMap();
+    private _listenerTagMap = new TagMap<Listener<T>>();
+    private _catcherTagMap = new TagMap<Catcher>();
     constructor(private _baseSignal: BaseSignal<T>) {}
+
     public add(listener: Listener<T>, ...tags: any[]): void {
-        this._tagMap.setListeners(listener, ...tags);
+        this._listenerTagMap.setHandlers(listener, ...tags);
         this._baseSignal.add(listener);
     }
+
+    public catch(catcher: Catcher): void {
+        this._baseSignal.catch(catcher);
+    }
+
     public remove(listenerOrTag: any): void {
-        this._tagMap.getListeners(listenerOrTag)
+        this._listenerTagMap.getThings(listenerOrTag)
             .forEach(taggedListener => {
                 this._baseSignal.remove(taggedListener);
-                this._tagMap.clearListener(taggedListener);
+                this._listenerTagMap.clearThing(taggedListener);
             });
         this._baseSignal.remove(listenerOrTag);
-        this._tagMap.clearListener(listenerOrTag);
+        this._listenerTagMap.clearThing(listenerOrTag);
     }
+
+    public removeCatcher(catcherOrTag: any): void {
+        this._catcherTagMap.getThings(catcherOrTag)
+            .forEach(taggedCatcher => {
+                this._baseSignal.removeCatcher(taggedCatcher);
+                this._catcherTagMap.clearThing(taggedCatcher);
+            });
+        this._baseSignal.removeCatcher(catcherOrTag);
+        this._catcherTagMap.clearThing(catcherOrTag);
+    }
+
     public addOnce(listener: Listener<T>, ...tags: any[]): void {
         // to match the set behavior of add, only add the listener if the listener is not already
         // registered, don't add the same listener twice
-        if (this._tagMap.getListeners(listener).size > 0) {
+        if (this._listenerTagMap.getThings(listener).size > 0) {
             return;
         }
         const oneTimeListener = (payload: T) => {
             this._baseSignal.remove(oneTimeListener);
             listener(payload);
         };
-        this._tagMap.setListeners(oneTimeListener, listener, ...tags);
+        this._listenerTagMap.setHandlers(oneTimeListener, listener, ...tags);
         this._baseSignal.add(oneTimeListener);
     }
     public filter<U extends T>(filter: (payload: T) => payload is U): ReadableSignal<U>;
@@ -129,22 +158,33 @@ function convertedListenerSignal<BaseType, ExtendedType>(
     convertListener: (listener: Listener<ExtendedType>)  => Listener<BaseType>,
     postAddHook?: (listener: Listener<ExtendedType>, listenerActive: () => boolean) => void,
 ): ExtendedSignal<ExtendedType> {
-    const listenerMap = new Map<Listener<ExtendedType>, Listener<BaseType>>();
+    const catcherMap = new Map<Listener<ExtendedType>, Listener<BaseType>>();
     return new ExtendedSignal({
         add: listener => {
             const newListener = convertListener(listener);
-            listenerMap.set(listener, newListener);
+            catcherMap.set(listener, newListener);
             baseSignal.add(newListener);
             if (postAddHook) {
-                postAddHook(listener, () => listenerMap.has(listener));
+                postAddHook(listener, () => catcherMap.has(listener));
             }
         },
+        catch: catcher => {
+            baseSignal.catch(catcher);
+        },
         remove: listener => {
-            const newListener = listenerMap.get(listener);
-            listenerMap.delete(listener);
+            const newListener = catcherMap.get(listener);
+            catcherMap.delete(listener);
             // TODO undefined ok in other case
             if (newListener !== undefined) {
                 baseSignal.remove(newListener);
+            }
+        },
+        removeCatcher: catcher => {
+            const newCatcher = catcherMap.get(catcher);
+            catcherMap.delete(catcher);
+            // TODO undefined ok in other case
+            if (newCatcher !== undefined) {
+                baseSignal.removeCatcher(newCatcher);
             }
         },
     });

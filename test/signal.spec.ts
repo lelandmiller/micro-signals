@@ -91,6 +91,91 @@ test('All listeners should receive dispatched payloads even with exceptions', t 
     t.end();
 });
 
+test('Catchers should receive exceptions', t => {
+    const signal = new Signal<string>();
+
+    const error1 = new Error('error1');
+    const error2 = new Error('error2');
+    const receivedExceptions: Error[] = [];
+    const receivedPayloadsListener: string[] = [];
+
+    signal.catch(exception => receivedExceptions.push(exception));
+
+    signal.add(() => { throw error1; });
+    signal.add(() => { throw error2; });
+    signal.add(payload => receivedPayloadsListener.push(payload));
+
+    signal.dispatch('Hallo Welt!');
+
+    t.deepEqual(receivedExceptions, [error1, error2]);
+    t.deepEqual(receivedPayloadsListener, ['Hallo Welt!']);
+
+    t.end();
+});
+
+test('Catchers should receive no exceptions after being removed', t => {
+    const signal = new Signal<string>();
+
+    const error1 = new Error('error1');
+    const error2 = new Error('error2');
+    const receivedExceptions: Error[] = [];
+    const receivedPayloadsListener: string[] = [];
+
+    const catcher = (exception: any) => receivedExceptions.push(exception);
+    signal.catch(catcher);
+
+    signal.add(() => { throw error1; });
+    signal.add(() => { throw error2; });
+    signal.add(payload => receivedPayloadsListener.push(payload));
+
+    signal.dispatch('Hallo Welt!');
+    signal.removeCatcher(catcher);
+    signal.dispatch('Hello World!');
+
+    t.deepEqual(receivedExceptions, [error1, error2]);
+    t.deepEqual(receivedPayloadsListener, ['Hallo Welt!', 'Hello World!']);
+
+    t.end();
+});
+
+test('Catchers should receive exceptions for derived Signals too', t => {
+    const signal = new Signal<number>();
+    const filtered = signal.filter(x => x > 2);
+
+    const e1 = new Error('error1');
+    const e2 = new Error('error2');
+
+    const receivedExceptions1: Error[] = [];
+    const receivedExceptions2: Error[] = [];
+    const receivedPayloadsListener1: number[] = [];
+    const receivedPayloadsListener2: number[] = [];
+
+    const expectedExceptions = [
+        e1,     // 1
+        e1,     // 2
+        e1, e2, // 3
+        e1, e2, // 4
+    ];
+
+    signal.catch(exception => receivedExceptions1.push(exception));
+    filtered.catch(exception => receivedExceptions2.push(exception));
+
+    signal.add(() => { throw e1; });
+    filtered.add(() => { throw e2; });
+
+    signal.add(payload => receivedPayloadsListener1.push(payload));
+    filtered.add(payload => receivedPayloadsListener2.push(payload));
+
+    [1, 2, 3, 4].forEach(x => signal.dispatch(x));
+
+    t.deepEqual(receivedExceptions1, expectedExceptions);
+    t.deepEqual(receivedExceptions2, expectedExceptions);
+    t.deepEqual(receivedPayloadsListener1, [1, 2, 3, 4]);
+    t.deepEqual(receivedPayloadsListener2, [3, 4]);
+
+    t.end();
+});
+
 test('Signal listener should be called only once when using addOnce', t => {
     const signal = new Signal<void>();
     let callCount = 0;

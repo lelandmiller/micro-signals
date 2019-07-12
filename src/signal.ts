@@ -1,6 +1,6 @@
-import {ExtendedSignal} from './extended-signal';
-import {ReadableSignal} from './index';
-import {Listener, WritableSignal} from './interfaces';
+import { ExtendedSignal } from './extended-signal';
+import { ReadableSignal } from './index';
+import { Catcher, Listener, WritableSignal } from './interfaces';
 
 export class Signal<T> extends ExtendedSignal<T> implements WritableSignal<T>, ReadableSignal<T> {
     public static setDefaultListener(listener: Listener<any>) {
@@ -12,14 +12,21 @@ export class Signal<T> extends ExtendedSignal<T> implements WritableSignal<T>, R
     }
 
     protected _listeners = new Set<Listener<T>>();
+    protected _catchers  = new Set<Catcher>();
 
     constructor() {
         super({
             add: listener => {
                 this._listeners.add(listener);
             },
+            catch: catcher => {
+                this._catchers.add(catcher);
+            },
             remove: listener => {
                 this._listeners.delete(listener);
+            },
+            removeCatcher: catcher => {
+                this._catchers.delete(catcher);
             },
         });
     }
@@ -30,11 +37,14 @@ export class Signal<T> extends ExtendedSignal<T> implements WritableSignal<T>, R
             instanceDefaultListener(payload);
             return;
         }
-        this._listeners.forEach(callback => {
+        this._listeners.forEach(listener => {
             try {
-                callback.call(undefined, payload);
-                // tslint:disable-next-line:no-empty
-            } catch (e) {
+                listener.call(undefined, payload);
+            } catch (error) {
+                this._catchers.forEach(catcher => {
+                    // not catching if the catcher throws, to let the user know
+                    catcher.call(undefined, error);
+                });
             }
         });
     }
