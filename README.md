@@ -418,6 +418,10 @@ const promise = successSignal.promisify(failureSignal);
 promise.then(() => console.log('success')).catch(() => console.error('failure'));
 ```
 
+#### Signal.makeSafe
+
+Turn the Signal into a [`CatchingSignal`](#catchingsignal) which will catch exceptions thrown by its listeners and pass them onto a provided catching callback.
+
 ### ExtendedSignal
 
 An ExtendedSignal class is provided for the creation of a custom signal or wrapping a basic signal
@@ -490,13 +494,13 @@ action that should be taken when a signal is dispatched but no
 listeners have been added. Typically this would be used to throw
 or log an error if no listeners are present for an important signal.
 
-Default listeners can be set with either the static 
+Default listeners can be set with either the static
 setDetaultListener method or the instance setDefaultListener method.
 
 The static default listener will be called on any signal that has
 no listeners present (even if no instance default listener is set).
 
-The instance default listener will only be called when the 
+The instance default listener will only be called when the
 specific signal instance is dispatched with no listeners present.
 
 
@@ -528,7 +532,35 @@ assert.equal(instancePayloads.length, 1);
 assert.equal(instancePayloads[0], 'hello instance listener');
 ```
 
+### CatchingSignal
 
+By default `Signal`s do not catch any exceptions thrown by their listeners. This can have some downsides when you allow ontrusted downstream consumers to add their own listeners to your signals. This can be avoid either one of three ways:
+
+```ts
+import {Signal, Listener} from 'micro-signals';
+
+const unsafeListener: Listener<string> = payload => { console.log(payload); throw new Error('OMG, what happened?'); };
+const secondListener: Listener<string> = payload => { console.log(payload); };
+
+const signal = new Signal<string>();
+
+signal.add(unsafeListener);
+signal.add(secondListener);
+
+try {
+    // unsafe dispatch, unsafeListener throws, second listener is never called
+    signal.dispatch('hello unsafe!');
+} catch {
+}
+
+// safe dispatch
+signal.dispatch('hello safe!', e => console.warn('error thrown by listener, safely caught', e));
+
+
+// A Catching Signal that makes sure you don't get your users errors
+const catching = signal.catch(e => console.warn('error thrown by listener, safely caught', e));
+catching.dispatch('hello safe!');
+```
 ### Interfaces
 
 Several interfaces are exported as well for convenience:

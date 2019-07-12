@@ -66,6 +66,49 @@ test('Signal listeners should received dispatched payloads', t => {
     t.end();
 });
 
+test('All CatchingSignal listeners should receive dispatched payloads even with exceptions', t => {
+    const signal = new Signal<string>();
+
+    const sentPayloads = ['a', 'b', 'c'];
+
+    const receivedExceptions: any[] = [];
+    const receivedPayloadsListener1: string[] = [];
+    const receivedPayloadsListener2: string[] = [];
+
+    signal.add(payload => {
+        receivedPayloadsListener1.push(payload);
+        throw new Error('');
+    });
+    signal.add(payload => {
+        receivedPayloadsListener2.push(payload);
+        throw new Error('');
+    });
+
+    sentPayloads.forEach(payload => signal
+        .catch(e => receivedExceptions.push(e))
+        .dispatch(payload),
+    );
+
+    t.deepEqual(receivedPayloadsListener1, sentPayloads);
+    t.deepEqual(receivedPayloadsListener2, sentPayloads);
+
+    t.end();
+});
+
+test('Catcher can be overwritten with onCatch', t => {
+    const signal = new Signal<boolean>();
+    signal.add(() => {throw new Error('booh!'); });
+    const catching = signal.catch(called => t.assert(!called));
+
+    let newCatcherCalled = false;
+    catching.setCatcher(called => newCatcherCalled = called);
+
+    catching.dispatch(true);
+    t.assert(newCatcherCalled);
+
+    t.end();
+});
+
 test('Signal listener should be called only once when using addOnce', t => {
     const signal = new Signal<void>();
     let callCount = 0;
