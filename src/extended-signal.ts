@@ -1,4 +1,4 @@
-import {BaseSignal, Cache, Catcher, Listener, ReadableSignal} from './interfaces';
+import {BaseSignal, Cache, Catcher, CatchingSignal, Listener, ReadableSignal} from './interfaces';
 import { TagMap } from './tag-map';
 
 export class ExtendedSignal<T> implements ReadableSignal<T> {
@@ -14,7 +14,7 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
             catch(catcher) {
                 const newCatcher = (exception: any) => catcher(exception);
                 catchers.set(catcher, newCatcher);
-                signals.forEach(signal => signal.catch(newCatcher));
+                signals.filter(isCatching).forEach(signal => signal.catch && signal.catch(newCatcher));
             },
             remove(listener) {
                 const newListener = listeners.get(listener);
@@ -24,7 +24,7 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
             removeCatcher(catcher) {
                 const newCatcher = catchers.get(catcher);
                 catchers.delete(catcher);
-                signals.forEach(signal => signal.removeCatcher(newCatcher));
+                signals.filter(isCatching).forEach(signal => signal.removeCatcher && signal.removeCatcher(newCatcher));
             },
         });
     }
@@ -58,7 +58,7 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
     }
     private _listenerTagMap = new TagMap<Listener<T>>();
     private _catcherTagMap = new TagMap<Catcher>();
-    constructor(private _baseSignal: BaseSignal<T>) {}
+    constructor(private _baseSignal: BaseSignal<T> | CatchingSignal<T>) {}
 
     public add(listener: Listener<T>, ...tags: any[]): void {
         this._listenerTagMap.setHandlers(listener, ...tags);
@@ -66,7 +66,9 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
     }
 
     public catch(catcher: Catcher): void {
-        this._baseSignal.catch(catcher);
+        if (isCatching(this._baseSignal)) {
+            this._baseSignal.catch(catcher);
+        }
     }
 
     public remove(listenerOrTag: any): void {
@@ -80,9 +82,12 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
     }
 
     public removeCatcher(catcherOrTag: any): void {
+        if (!isCatching(this._baseSignal)) {
+            return;
+        }
         this._catcherTagMap.getThings(catcherOrTag)
             .forEach(taggedCatcher => {
-                this._baseSignal.removeCatcher(taggedCatcher);
+                (this._baseSignal as CatchingSignal<T>).removeCatcher(taggedCatcher);
                 this._catcherTagMap.clearThing(taggedCatcher);
             });
         this._baseSignal.removeCatcher(catcherOrTag);
@@ -169,7 +174,9 @@ function convertedListenerSignal<BaseType, ExtendedType>(
             }
         },
         catch: catcher => {
-            baseSignal.catch(catcher);
+            if (isCatching(baseSignal)) {
+                baseSignal.catch(catcher);
+            }
         },
         remove: listener => {
             const newListener = catcherMap.get(listener);
@@ -183,9 +190,14 @@ function convertedListenerSignal<BaseType, ExtendedType>(
             const newCatcher = catcherMap.get(catcher);
             catcherMap.delete(catcher);
             // TODO undefined ok in other case
-            if (newCatcher !== undefined) {
-                baseSignal.removeCatcher(newCatcher);
+            if (isCatching(baseSignal) && newCatcher !== undefined) {
+                if (baseSignal.removeCatcher) {
+                    baseSignal.removeCatcher(newCatcher);
+                }
             }
         },
     });
 }
+
+const isCatching = <T>(signal: BaseSignal<T>): signal is CatchingSignal<T> =>
+    'catch' in signal && 'removeCatcher' in signal;

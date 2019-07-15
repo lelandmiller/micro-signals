@@ -4,11 +4,16 @@ export type Catcher = (error: any) => void;
 export interface BaseSignal<T> {
     add(listener: Listener<T>, ...tags: any[]): void;
     remove(listenerOrTag: any): void;
+}
+
+export interface CatchingSignal<T> extends BaseSignal<T> {
+    add(listener: Listener<T>, ...tags: any[]): void;
+    remove(listenerOrTag: any): void;
     catch(catcher: Catcher, ...tags: any[]): void;
     removeCatcher(listenerOrTag: any): void;
 }
 
-export interface ReadableSignal<T> extends BaseSignal<T> {
+export interface ReadableSignal<T> extends CatchingSignal<T> {
     addOnce(listener: Listener<T>, ...tags: any[]): void;
     filter<U extends T>(filter: (payload: T) => payload is U): ReadableSignal<U>;
     filter(filter: (payload: T) => boolean): ReadableSignal<T>;

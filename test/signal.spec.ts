@@ -138,6 +138,7 @@ test('Catchers should receive no exceptions after being removed', t => {
     t.end();
 });
 
+// FIXME: actually for filtered the handlers shouldn't be called at all
 test('Catchers should receive exceptions for derived Signals too', t => {
     const signal = new Signal<number>();
     const filtered = signal.filter(x => x > 2);
@@ -158,7 +159,7 @@ test('Catchers should receive exceptions for derived Signals too', t => {
     ];
 
     signal.catch(exception => receivedExceptions1.push(exception));
-    filtered.catch(exception => receivedExceptions2.push(exception));
+    filtered.catch!(exception => receivedExceptions2.push(exception));
 
     signal.add(() => { throw e1; });
     filtered.add(() => { throw e2; });
@@ -172,6 +173,29 @@ test('Catchers should receive exceptions for derived Signals too', t => {
     t.deepEqual(receivedExceptions2, expectedExceptions);
     t.deepEqual(receivedPayloadsListener1, [1, 2, 3, 4]);
     t.deepEqual(receivedPayloadsListener2, [3, 4]);
+
+    t.end();
+});
+
+test('Filtered Signals shouldn\'t call listeners at all', t => {
+    const signal = new Signal<number>();
+    const filtered = signal.filter(_x => false);
+
+    const e = new Error('error2');
+
+    const receivedExceptions: Error[] = [];
+    const receivedPayloadsListener: number[] = [];
+
+    const expectedExceptions: Error[] = [];
+
+    filtered.catch!(exception => receivedExceptions.push(exception));
+    filtered.add(() => { throw e; });
+    filtered.add(payload => receivedPayloadsListener.push(payload));
+
+    [1, 2, 3, 4].forEach(x => signal.dispatch(x));
+
+    t.deepEqual(receivedExceptions, expectedExceptions);
+    t.deepEqual(receivedPayloadsListener, []);
 
     t.end();
 });
