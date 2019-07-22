@@ -51,6 +51,7 @@ function extractReadmeExamples(): string[] {
         fs.writeFileSync(path, converted);
     });
 
+    // throw new Error('pause');
     return filenames;
 }
 

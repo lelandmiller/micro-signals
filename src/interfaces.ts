@@ -17,14 +17,25 @@ export interface ReadableSignal<T> extends BaseSignal<T> {
 }
 
 export interface WritableSignal<T> {
-    dispatch: (payload: T) => void;
+    dispatch: (payload: T, catcher?: Catcher) => void;
     /**
      * set a listener to be called if no other listeners are available.
      */
     setDefaultListener(listener: Listener<T>): void;
+
+    catch(catcher: Catcher): CatchingSignal<T>;
+}
+
+export interface CatchingSignal<T> extends WritableSignal<T> {
+    /**
+     * replace the catcher
+     */
+    setCatcher: (catcher: Catcher) => void;
 }
 
 export interface Cache<T> {
     add(payload: T): void;
     forEach(callback: (payload: T) => void): void;
 }
+
+export type Catcher = (error: any) => void;
