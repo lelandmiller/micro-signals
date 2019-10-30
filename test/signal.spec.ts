@@ -10,6 +10,7 @@ import {mappedSuite} from './suites/mapped-suite';
 import {mergedSuite} from './suites/merged-suite';
 import {promisifySuite} from './suites/promisify-suite';
 import {readOnlySuite} from './suites/read-only-suite';
+import {reducedSuite} from './suites/reduced-suite';
 
 // TODO run the signal suite on the converted signals as well?
 
@@ -46,6 +47,11 @@ promisifySuite(
 readOnlySuite(
     'Signal#readOnly',
     signal => signal.readOnly(),
+);
+
+reducedSuite(
+    'Signal#reduce',
+    (baseSignal, accumulator, initialValue) => baseSignal.reduce(accumulator, initialValue),
 );
 
 test('Signal listeners should received dispatched payloads', t => {

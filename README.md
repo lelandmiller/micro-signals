@@ -372,6 +372,28 @@ mappedSignal.add(payload => {
 assert.deepEqual(received, ['cat!', 'dog!', 'frog!', 'sloth!']);
 ```
 
+#### Signal.reduce
+
+Signal.reduce provides the ability to aggregate payloads coming through a Signal, similar to reducing an array in JavaScript.
+
+```ts
+import {Signal} from 'micro-signals';
+import * as assert from 'assert';
+
+const signal = new Signal<number>();
+const sumSignal = signal.reduce((total, current) => total + current, 0);
+
+const received: number[] = [];
+
+sumSignal.add(payload => {
+    received.push(payload);
+});
+
+[5, 10, 20, 100].forEach(x => signal.dispatch(x));
+
+assert.deepEqual(received, [5, 15, 35, 135]);
+```
+
 #### Signal.merge
 
 Signal.merge takes an arbitrary number of signals as constructor arguments and forward payloads from

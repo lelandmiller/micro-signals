@@ -14,6 +14,7 @@ export interface ReadableSignal<T> extends BaseSignal<T> {
     promisify(rejectSignal?: ReadableSignal<any>): Promise<T>;
     readOnly(): ReadableSignal<T>;
     cache(cache: Cache<T>): ReadableSignal<T>;
+    reduce<U>(accumulator: Accumulator<T, U>, initialValue: U): ReadableSignal<U>;
 }
 
 export interface WritableSignal<T> {
@@ -28,3 +29,5 @@ export interface Cache<T> {
     add(payload: T): void;
     forEach(callback: (payload: T) => void): void;
 }
+
+export type Accumulator<T, U> = (accum: U, current: T) => any;
