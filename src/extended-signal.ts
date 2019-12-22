@@ -1,4 +1,4 @@
-import {BaseSignal, Cache, Listener, ReadableSignal} from './interfaces';
+import {Accumulator, BaseSignal, Cache, Listener, ReadableSignal} from './interfaces';
 import { TagMap } from './tag-map';
 
 export class ExtendedSignal<T> implements ReadableSignal<T> {
@@ -101,6 +101,18 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
         return convertedListenerSignal(
             this._baseSignal,
             listener => payload => listener(payload),
+        );
+    }
+    public reduce<U>(accumulator: Accumulator<T, U>, initialValue: U): ReadableSignal<U> {
+        return convertedListenerSignal(
+            this._baseSignal,
+            listener => (() => {
+                let accum = initialValue;
+                return (payload: T) => {
+                    accum = accumulator(accum, payload);
+                    listener(accum);
+                };
+            })(),
         );
     }
     public cache(cache: Cache<T>): ReadableSignal<T> {
