@@ -3,7 +3,7 @@ import test = require('tape');
 import {LeakDetectionSignal} from '../lib/leak-detection-signal';
 import {parentChildSuite} from './parent-child-suite';
 
-import {ReadableSignal, ReadOnlyVersionOf, Signal} from '../../src';
+import {PayloadOf, ReadableSignal, ReadOnlyVersionOf, Signal} from '../../src';
 
 export type ReadOnlySignalCreationFunction = <T>(baseSignal: ReadableSignal<T>) => ReadableSignal<T>;
 
@@ -72,6 +72,8 @@ export function readOnlySuite(prefix: string, createReadOnlySignal: ReadOnlySign
 
         const writable = new Signal<FooBar>();
         const readonly: ReadOnlyVersionOf<typeof writable> = writable.readOnly();
+        const payload: PayloadOf<typeof writable> = {foo: 'foo' , bar: 'bar'};
+        writable.dispatch(payload);
 
         readonly.add(takesFooBar);
 
