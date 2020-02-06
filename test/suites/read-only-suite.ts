@@ -3,7 +3,7 @@ import test = require('tape');
 import {LeakDetectionSignal} from '../lib/leak-detection-signal';
 import {parentChildSuite} from './parent-child-suite';
 
-import {ReadableSignal, Signal} from '../../src';
+import {ReadableSignal, ReadOnlyVersionOf, Signal} from '../../src';
 
 export type ReadOnlySignalCreationFunction = <T>(baseSignal: ReadableSignal<T>) => ReadableSignal<T>;
 
@@ -59,6 +59,22 @@ export function readOnlySuite(prefix: string, createReadOnlySignal: ReadOnlySign
         readOnlySignal.remove(listener);
 
         t.equal(signal.listenerCount, 0);
+        t.end();
+    });
+
+    test(`${prefix} should compile`, t => {
+        interface FooBar {
+            foo: 'foo';
+            bar: 'bar';
+        }
+
+        const takesFooBar = (_fb: FooBar) => void 0;
+
+        const writable = new Signal<FooBar>();
+        const readonly: ReadOnlyVersionOf<typeof writable> = writable.readOnly();
+
+        readonly.add(takesFooBar);
+
         t.end();
     });
 

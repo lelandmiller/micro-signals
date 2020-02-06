@@ -31,3 +31,6 @@ export interface Cache<T> {
 }
 
 export type Accumulator<T, U> = (accum: U, current: T) => any;
+
+export type ReadOnlyVersionOf<S extends BaseSignal<any>> =
+    S extends BaseSignal<infer T> ? ReadableSignal<T> : never;
