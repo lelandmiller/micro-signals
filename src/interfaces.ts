@@ -12,6 +12,7 @@ export interface ReadableSignal<T> extends BaseSignal<T> {
     map<U>(transform: (payload: T) => U): ReadableSignal<U>;
     merge<U>(...signals: ReadableSignal<U>[]): ReadableSignal<T|U>;
     promisify(rejectSignal?: ReadableSignal<any>): Promise<T>;
+    peek(peekaboo: (payload: T) => void): ReadableSignal<T>;
     readOnly(): ReadableSignal<T>;
     cache(cache: Cache<T>): ReadableSignal<T>;
     reduce<U>(accumulator: Accumulator<T, U>, initialValue: U): ReadableSignal<U>;
