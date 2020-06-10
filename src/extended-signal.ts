@@ -115,6 +115,15 @@ export class ExtendedSignal<T> implements ReadableSignal<T> {
             })(),
         );
     }
+    public peek(peekaboo: (payload: T) => void): ReadableSignal<T> {
+        return convertedListenerSignal(
+            this._baseSignal,
+            listener => payload => {
+                peekaboo(payload);
+                listener(payload);
+            },
+        );
+    }
     public cache(cache: Cache<T>): ReadableSignal<T> {
         this._baseSignal.add(payload => cache.add(payload));
 

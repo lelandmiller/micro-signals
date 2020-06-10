@@ -8,6 +8,7 @@ import {
 import {filteredSuite} from './suites/filtered-suite';
 import {mappedSuite} from './suites/mapped-suite';
 import {mergedSuite} from './suites/merged-suite';
+import {peekedSuite} from './suites/peeked-suite';
 import {promisifySuite} from './suites/promisify-suite';
 import {readOnlySuite} from './suites/read-only-suite';
 import {reducedSuite} from './suites/reduced-suite';
@@ -52,6 +53,11 @@ readOnlySuite(
 reducedSuite(
     'Signal#reduce',
     (baseSignal, accumulator, initialValue) => baseSignal.reduce(accumulator, initialValue),
+);
+
+peekedSuite(
+    'Signal#peek',
+    (baseSignal, peeker) => baseSignal.peek(peeker),
 );
 
 test('Signal listeners should received dispatched payloads', t => {

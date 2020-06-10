@@ -372,6 +372,30 @@ mappedSignal.add(payload => {
 assert.deepEqual(received, ['cat!', 'dog!', 'frog!', 'sloth!']);
 ```
 
+#### Signal.peek
+
+Peek allows you to access a payload without consuming it. 
+
+```ts
+import {Signal} from 'micro-signals';
+import * as assert from 'assert';
+
+const signal = new Signal<string>();
+const received: string[] = [];
+
+signal
+    .map(x => `${x}!`)
+    .peek(payload => console.log(payload))
+    .add(payload => {
+        received.push(payload);
+    });
+
+['cat', 'dog', 'frog', 'sloth'].forEach(x => signal.dispatch(x));
+
+assert.deepEqual(received, ['cat!', 'dog!', 'frog!', 'sloth!']);
+```
+
+
 #### Signal.reduce
 
 Signal.reduce provides the ability to aggregate payloads coming through a Signal, similar to reducing an array in JavaScript.
@@ -513,7 +537,7 @@ listeners have been added. Typically this would be used to throw
 or log an error if no listeners are present for an important signal.
 
 Default listeners can be set with either the static 
-setDetaultListener method or the instance setDefaultListener method.
+setDefaultListener method or the instance setDefaultListener method.
 
 The static default listener will be called on any signal that has
 no listeners present (even if no instance default listener is set).
